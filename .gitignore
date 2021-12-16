@@ -1,0 +1,10 @@
+.vs/
+.vsconfig
+*.csproj
+*.sln
+Library/
+Logs/
+obj/
+Assets/StreamingAssets/Libpostal/
+Assets/Plugins/Libpostal/
+.tsv*
