@@ -30,7 +30,9 @@ namespace LP.UI
 
         public AddressFormatter[] AddressColumns => _addressColumns;
 
-        private void Start()
+        public IEnumerable<ElementModel> Elements => _groupsRecord.Values.SelectMany(r => r.Elements);
+
+        private void Awake()
         {
             //var groups = ((AddressFormatter[])Enum.GetValues(typeof(AddressFormatter))).Take(_groupColors.Length);
 
@@ -48,5 +50,7 @@ namespace LP.UI
                 _groupsRecord[component.Group].SetupElements(Enumerable.Empty<ElementModel>().Append(component));
             }
         }
+
+        public IEnumerable<ElementModel> GetElementByGroup(AddressFormatter group) => _groupsRecord[group].Elements;
     }
 }

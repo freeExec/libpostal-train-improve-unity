@@ -8,3 +8,4 @@ obj/
 Assets/StreamingAssets/Libpostal/
 Assets/Plugins/Libpostal/
 .tsv*
+Temp/

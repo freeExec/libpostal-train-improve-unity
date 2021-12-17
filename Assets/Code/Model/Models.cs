@@ -9,9 +9,10 @@ namespace LP.Model
     public enum ElementSource
     {
         Unknown = -1,
-        Manual = 0,
-        OpenData,
-        Libpostal
+        RawOpenData  = 0,
+        PreparePythonScript,
+        Libpostal,
+        ManualUserSeparate,
     }
 
     public class ElementModel
@@ -34,6 +35,11 @@ namespace LP.Model
             this.Group = group;
             this.Value = value;
             this.Source = source;
+        }
+
+        public override string ToString()
+        {
+            return IsEmpty ? "<Empty>" : $"{Group}:{Value}";
         }
     }
 }

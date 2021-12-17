@@ -8,33 +8,16 @@ using UnityEngine.UI;
 
 namespace LP.UI
 {
-    public class AddressComponent : MonoBehaviour, IPointerClickHandler,
-        IPointerDownHandler, IPointerUpHandler,
-        IDragHandler, IInitializePotentialDragHandler, IBeginDragHandler, IEndDragHandler
+    public class AddressComponent : MonoBehaviour
     {
         [SerializeField] TextMeshProUGUI _label = default;
+        [SerializeField] Movable _movable = default;
+        [SerializeField] Image _colorMarker = default;
 
-        private Canvas _parentCanvas;
-        private RectTransform _rect;
-        private LayoutElement _layoutElement;
-        private CanvasGroup _canvasGroup;
-        private Transform _dragZone;
-
-        private Transform _originParent;
 
         public ElementModel Element { get; private set; }
+        public Movable Movable => _movable;
 
-        private void Start()
-        {
-            _rect = (RectTransform)transform;
-            _parentCanvas = GetComponentInParent<Canvas>();
-
-            _canvasGroup = GetComponent<CanvasGroup>();
-
-            _layoutElement = GetComponent<LayoutElement>();
-            if (_layoutElement == null)
-                enabled = false;
-        }
 
         public void Setup(ElementModel element, Transform dragZone)
         {
@@ -43,56 +26,20 @@ namespace LP.UI
 
             Element = element;
             _label.text = element.Value;
-            _dragZone = dragZone;
+
+            _movable.Setup(dragZone);
         }
 
         public void SetEmpty()
         {
+            Element = default;
+            SetColorMarker(Color.white);
             Setup(ElementModel.EmptyElement, default);
         }
 
-        public void OnPointerClick(PointerEventData eventData)
+        public void SetColorMarker(Color color)
         {
-            //throw new System.NotImplementedException();
-        }
-
-        public void OnPointerDown(PointerEventData eventData)
-        {
-            //throw new System.NotImplementedException();
-        }
-
-        public void OnPointerUp(PointerEventData eventData)
-        {
-            //throw new System.NotImplementedException();
-        }
-
-        public void OnInitializePotentialDrag(PointerEventData eventData)
-        {
-            //throw new System.NotImplementedException();
-        }
-
-        public void OnBeginDrag(PointerEventData eventData)
-        {
-            _canvasGroup.blocksRaycasts = false;
-            _layoutElement.ignoreLayout = true;
-            _originParent = transform.parent;
-            transform.SetParent(_dragZone, true);
-        }
-
-        public void OnEndDrag(PointerEventData eventData)
-        {
-            transform.SetParent(_originParent, true);
-
-            _originParent = null;
-
-            _canvasGroup.blocksRaycasts = true;
-            _layoutElement.ignoreLayout = false;
-
-        }
-
-        public void OnDrag(PointerEventData eventData)
-        {
-            _rect.anchoredPosition += eventData.delta / (_parentCanvas != default ? _parentCanvas.scaleFactor : 1);
+            _colorMarker.color = color;
         }
     }
 }

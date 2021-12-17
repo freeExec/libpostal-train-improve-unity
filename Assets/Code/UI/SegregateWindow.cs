@@ -7,6 +7,7 @@ using LibPostalNet;
 using TMPro;
 using LP.Data;
 using LP.Model;
+using UnityEngine.UI;
 
 namespace LP.UI
 {
@@ -18,38 +19,31 @@ namespace LP.UI
         [SerializeField] AddressRecord postalAddressView = default;
         [SerializeField] AddressRecord outAddressView = default;
 
+        [SerializeField] Button _buttonTsv = default;
+        [SerializeField] Button _buttonCopyTsv = default;
+        [SerializeField] Button _buttonNext = default;
+
         private PreTrainDataReader dataReader;
+        private LibpostalNormalizeOptions optExpand;
+        private LibpostalAddressParserOptions parseOpt;
 
         void Start()
         {
             dataReader = new PreTrainDataReader(Application.streamingAssetsPath);
             var currentLine = dataReader.GetNextRecord();   // headers
-            currentLine = dataReader.GetNextRecord();
 
-
-
-            //var line = "БЕЛГОРОДСКАЯ ОБЛАСТЬ\t\tПГТ БОРИСОВКА\t\tУЛ. 8 МАРТА\tД.9";
-            var addressComponents = currentLine
-                .Split(SPLIT_SEPATARE)
-                .Zip(tsvAddressView.AddressColumns, (value, address) => 
-                    new ElementModel(address, value, ElementSource.OpenData));
-            tsvAddressView.Setup(addressComponents);
-
-            return;
+            //_buttonTsv.onClick.AddListener(CopyTsvToResult);
+            _buttonCopyTsv.onClick.AddListener(CopyTsvToResult);
+            _buttonNext.onClick.AddListener(OnNextAddress);
 
             var dataPath = Path.Combine(Application.streamingAssetsPath, "Libpostal");
-            //dataPath = "d:/Unity3D/LP-addres-segregate/Assets/StreamingAssets/Libpostal";
             bool a = libpostal.LibpostalSetupDatadir(dataPath);
             bool b = libpostal.LibpostalSetupLanguageClassifierDatadir(dataPath);
             bool c = libpostal.LibpostalSetupParserDatadir(dataPath);
 
-            Debug.Log(a);
-            Debug.Log(b);
-            Debug.Log(c);
+            // Debug.Log(a && b && c);
 
-            var query = "БЕЛГОРОДСКАЯ ОБЛАСТЬ, ПГТ БОРИСОВКА, УЛ. 8 МАРТА, Д.9";
-
-            var optExpand = libpostal.LibpostalGetDefaultOptions();
+            optExpand = libpostal.LibpostalGetDefaultOptions();
             optExpand.LatinAscii = false;
             optExpand.StripAccents = false;
             optExpand.Decompose = false;
@@ -64,14 +58,12 @@ namespace LP.UI
             optExpand.SplitAlphaFromNumeric = false;        // раздвигать буквы от цифр (особо мешает в номере дома)
             optExpand.ReplaceWordHyphens = false;           // удалять дефисы
 
-            var expansion = libpostal.LibpostalExpandAddress(query, optExpand);
+            //var expansion = libpostal.LibpostalExpandAddress(currentLine, optExpand);
             //_label.text = expansion.Expansions[1];
 
-            var parseOpt = new LibpostalAddressParserOptions();
-            var result = libpostal.LibpostalParseAddress(query, parseOpt);
+            parseOpt = new LibpostalAddressParserOptions();
 
-            var c1 = result.Results.First();
-            //_label.text = $"{c1.Key}:{c1.Value}";
+            OnNextAddress();
         }
 
         private void OnDestroy()
@@ -85,5 +77,45 @@ namespace LP.UI
             libpostal.LibpostalTeardownLanguageClassifier();
         }
 
+        private void CopyTsvToResult()
+        {
+            //var row = string.Join(",", tsvAddressView.Elements.Where(e => !e.IsEmpty).OrderBy(e => e.Group).Select(e => e.Value));
+            //Debug.Log(row);
+
+            outAddressView.Setup(tsvAddressView.Elements.Where(e => !e.IsEmpty));
+        }
+
+        private void SaveCurrentAddress()
+        {
+            //var row = string.Join("\t", tsvAddressView.Elements.Where(e => !e.IsEmpty).OrderBy(e => e.Group).Select(e => e.Value));
+            var row = string.Join("\t", tsvAddressView.Elements.OrderBy(e => e.Group).Select(e => e.Value));
+            if (string.IsNullOrEmpty(row))
+                return;
+            var f = File.AppendText(Path.Combine(Application.streamingAssetsPath, "result.tsv"));
+            f.WriteLine(row);
+            f.Flush();
+            f.Close();
+        }
+
+        private void OnNextAddress()
+        {
+            SaveCurrentAddress();
+
+            var currentLine = dataReader.GetNextRecord();
+
+            var addressComponents = currentLine
+                .Split(SPLIT_SEPATARE)
+                .Zip(tsvAddressView.AddressColumns, (value, address) =>
+                    new ElementModel(address, value, ElementSource.PreparePythonScript));
+            tsvAddressView.Setup(addressComponents);
+
+            var parse = libpostal.LibpostalParseAddress(currentLine, parseOpt);
+
+            addressComponents = parse.Results
+                .Select(r => new ElementModel(AddressFormatterHelper.GetFormatterFromLibpostal(r.Key), r.Value, ElementSource.Libpostal));
+            postalAddressView.Setup(addressComponents);
+
+            outAddressView.Setup(Enumerable.Repeat(ElementModel.EmptyElement, 7));
+        }
     }
 }

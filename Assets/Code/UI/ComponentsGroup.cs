@@ -17,27 +17,36 @@ namespace LP.UI
         [SerializeField] GameObject _dropZone = default;
 
         private Transform _dragZone;
-        private List<ElementModel> elements;
+        private List<ElementModel> _elements = new List<ElementModel>();
         public AddressFormatter Group { get; private set; }
+        public IEnumerable<ElementModel> Elements => _elements;
 
         public void Setup(AddressFormatter group, Color color, Transform dragZone)
         {
             Group = group;
             _dragZone = dragZone;
             _background.color = color;
-            name = _labelGroup.text = Group.ToTsvString();            
+            name = _labelGroup.text = Group.ToTsvString();
         }
 
         public void SetupElements(IEnumerable<ElementModel> data)
         {
-            elements = data.ToList();
+            _elements.Clear();
+            _elements.AddRange(data);
+            UpdateElements();
+        }
 
-            CollectionInstantiator.Update<AddressComponent, ElementModel>(_container, elements, (view, model) =>
+        private void UpdateElements()
+        {
+            CollectionInstantiator.Update<AddressComponent, ElementModel>(_container, _elements, (view, model) =>
             {
                 view.Setup(model, _dragZone);
+                view.SetColorMarker(_background.color);
+                view.Movable.OnBegin -= OnComponentBeginDrag;
+                view.Movable.OnBegin += OnComponentBeginDrag;
             });
 
-            _dropZone.gameObject.SetActive(data.All(d => d.IsEmpty));
+            _dropZone.gameObject.SetActive(_elements.All(d => d.IsEmpty));
         }
 
         public void OnDrop(PointerEventData eventData)
@@ -55,14 +64,22 @@ namespace LP.UI
 
         private void ArriveComponent(AddressComponent component)
         {
-            elements.Add(component.Element);
-            SetupElements(elements);
+            var element = new ElementModel(Group, component.Element.Value, ElementSource.ManualUserSeparate);
+            _elements.Add(element);
+            UpdateElements();
         }
 
-        public void DepartureComponent(AddressComponent component)
+        private void DepartureComponent(AddressComponent component)
         {
-            elements.Remove(component.Element);
-            SetupElements(elements);
+            _elements.Remove(component.Element);
+            UpdateElements();
+        }
+
+        private void OnComponentBeginDrag(Movable m)
+        {
+            var component = m.GetComponent<AddressComponent>();
+            component.Movable.OnBegin -= OnComponentBeginDrag;
+            DepartureComponent(component);
         }
     }
 }
