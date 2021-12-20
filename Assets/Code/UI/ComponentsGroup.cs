@@ -51,10 +51,8 @@ namespace LP.UI
 
         public void OnDrop(PointerEventData eventData)
         {
-            Debug.Log("DROP droper");
             if (eventData.pointerDrag != default)
             {
-                //((RectTransform)eventData.pointerDrag.transform).anchoredPosition = ((RectTransform)transform).anchoredPosition;
                 //eventData.pointerDrag.transform.SetParent(transform, true);
                 var dropComponent = eventData.pointerDrag.GetComponent<AddressComponent>();
                 ArriveComponent(dropComponent);

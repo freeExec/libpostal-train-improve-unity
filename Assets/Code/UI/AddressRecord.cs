@@ -51,6 +51,14 @@ namespace LP.UI
             }
         }
 
+        public void Clear()
+        {
+            foreach(var record in _groupsRecord.Values)
+            {
+                record.SetupElements(Enumerable.Empty<ElementModel>());
+            }
+        }
+
         public IEnumerable<ElementModel> GetElementByGroup(AddressFormatter group) => _groupsRecord[group].Elements;
     }
 }

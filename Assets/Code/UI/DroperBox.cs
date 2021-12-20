@@ -5,15 +5,16 @@ using UnityEngine.EventSystems;
 
 namespace LP.UI
 {
-    public class DroperBox : MonoBehaviour//, IDropHandler
+    public class DroperBox : MonoBehaviour, IDropHandler
     {
-        /*public void OnDrop(PointerEventData eventData)
+        public void OnDrop(PointerEventData eventData)
         {
             Debug.Log("DROP droper");
             if (eventData.pointerDrag != default)
             {
-                ((RectTransform)eventData.pointerDrag.transform).anchoredPosition = ((RectTransform)transform).anchoredPosition;                
+                var dropComponent = eventData.pointerDrag.GetComponent<AddressComponent>();
+                dropComponent.SetEmpty();
             }
-        }*/
+        }
     }
 }

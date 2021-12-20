@@ -115,7 +115,7 @@ namespace LP.UI
                 .Select(r => new ElementModel(AddressFormatterHelper.GetFormatterFromLibpostal(r.Key), r.Value, ElementSource.Libpostal));
             postalAddressView.Setup(addressComponents);
 
-            outAddressView.Setup(Enumerable.Repeat(ElementModel.EmptyElement, 7));
+            outAddressView.Clear();
         }
     }
 }
