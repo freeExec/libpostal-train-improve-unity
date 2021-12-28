@@ -47,9 +47,11 @@ namespace LP.UI
 
         public void Setup(IEnumerable<ElementModel> components)
         {
-            foreach (var component in components)
+            Clear();
+
+            foreach (var component in components.GroupBy(c => c.Group))
             {
-                _groupsRecord[component.Group].SetupElements(Enumerable.Empty<ElementModel>().Append(component));
+                _groupsRecord[component.First().Group].SetupElements(component);
             }
         }
 

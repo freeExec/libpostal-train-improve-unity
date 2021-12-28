@@ -34,7 +34,7 @@ namespace LP.UI
             //var currentLine = dataReader.GetNextRecord();   // headers
 
             _buttonSkip.onClick.AddListener(OnSkipRecord);
-            _buttonCopyTsv.onClick.AddListener(CopyTsvToResult);
+            _buttonCopyTsv.onClick.AddListener(OnCopyTsvToResult);
             _buttonNext.onClick.AddListener(OnNextAddress);
             _buttonDump.onClick.AddListener(DumpProgress);
 
@@ -79,30 +79,26 @@ namespace LP.UI
             libpostal.LibpostalTeardownLanguageClassifier();
         }
 
-        private void MarkTsvOk()
+        /*private void MarkTsvOk()
         {
             dataReader.MarkRecordOk();
-            SaveCurrentAddress();
-        }
+            SaveAddress();
+        }*/
 
         private void OnSkipRecord()
         {
-            outAddressView.Clear();
-            OnNextAddress();
+            ShowNextAddress();
         }
 
-        private void CopyTsvToResult()
+        private void OnCopyTsvToResult()
         {
-            //var row = string.Join(",", tsvAddressView.Elements.Where(e => !e.IsEmpty).OrderBy(e => e.Group).Select(e => e.Value));
-            //Debug.Log(row);
-
             outAddressView.Setup(tsvAddressView.Elements.Where(e => !e.IsEmpty));
         }
 
-        private void SaveCurrentAddress()
+        private void SaveAddress(AddressRecord record)
         {
             //var row = string.Join("\t", tsvAddressView.Elements.Where(e => !e.IsEmpty).OrderBy(e => e.Group).Select(e => e.Value));
-            var row = string.Join("\t", tsvAddressView.Elements.OrderBy(e => e.Group).Select(e => e.Value));
+            var row = string.Join("\t", record.Elements.OrderBy(e => e.Group).Select(e => e.Value));
             if (string.IsNullOrEmpty(row))
                 return;
 
@@ -112,8 +108,15 @@ namespace LP.UI
         private void OnNextAddress()
         {
             if (!outAddressView.IsEmpty)
-                SaveCurrentAddress();
+                SaveAddress(outAddressView);
+            else
+                SaveAddress(tsvAddressView);
 
+            ShowNextAddress();
+        }
+
+        private void ShowNextAddress()
+        {
             var currentLine = dataReader.GetNextRecord();
 
             var addressComponents = currentLine
@@ -134,6 +137,7 @@ namespace LP.UI
         private void DumpProgress()
         {
             dataReader.SaveTsvPreTrainData();
+            Debug.Log("Saved");
         }
     }
 }

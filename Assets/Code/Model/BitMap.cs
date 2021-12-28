@@ -47,7 +47,7 @@ namespace LP.Data
             var reader = new BinaryReader(stream);
             var len = reader.ReadInt32();
             var map = new BitMap(len);
-            reader.Read(map._map, 0, len);
+            reader.Read(map._map, 0, map._map.Length);
 
             return map;
         }
