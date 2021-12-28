@@ -36,10 +36,12 @@ namespace LP.Data
 
         public int Length { get; private set; }
 
+        private int _compactLength => Length / BIT_TO_BYTE + 1;
+
         public BitMap(int size)
         {
             Length = size;
-            _map = new byte[(size + 1) / BIT_TO_BYTE];
+            _map = new byte[_compactLength];
         }
 
         public static BitMap FromStrea(Stream stream)
@@ -57,6 +59,13 @@ namespace LP.Data
             var writer = new BinaryWriter(stream);
             writer.Write(Length);
             writer.Write(_map);
+        }
+
+        public static BitMap Resize(BitMap bitMap, int newLength)
+        {            
+            var newBitMap = new BitMap(newLength);
+            Array.Copy(bitMap._map, newBitMap._map, newBitMap._compactLength);
+            return newBitMap;
         }
     }
 }

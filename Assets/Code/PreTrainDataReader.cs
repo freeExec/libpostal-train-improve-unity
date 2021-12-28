@@ -37,13 +37,6 @@ namespace LP.Data
         {
             _originalLines = File.ReadAllLines(_preTrainDataFilePath);
 
-            _orderByLongLines = new List<KeyValuePair<int, int>>();
-            for (int i = 0; i < _originalLines.Length; i++)
-            {
-                _orderByLongLines.Add(new KeyValuePair<int, int>(_originalLines[i].Length, i));
-            }
-            _orderByLongLines.Sort((t1, t2) => t2.Key.CompareTo(t1.Key));
-
 
             if (File.Exists(_completeBitMapFilePath))
             {
@@ -59,6 +52,44 @@ namespace LP.Data
             {
                 _bitMap = new BitMap(_originalLines.Length);
             }
+
+            RemoveDublicate(ref _originalLines, ref _bitMap);
+
+            _orderByLongLines = new List<KeyValuePair<int, int>>();
+            for (int i = 0; i < _originalLines.Length; i++)
+            {
+                _orderByLongLines.Add(new KeyValuePair<int, int>(_originalLines[i].Length, i));
+            }
+            _orderByLongLines.Sort((t1, t2) => t2.Key.CompareTo(t1.Key));
+        }
+
+        private static void RemoveDublicate(ref string[] lines, ref BitMap bitMap)
+        {
+            var hashSet = new HashSet<string>();
+            var newBitMap = new BitMap(bitMap.Length);
+            
+            for (int i = 0, n = 0; i < lines.Length; i++)
+            { 
+                var line = lines[i];
+
+                try
+                {
+
+                    if (!hashSet.Contains(line))
+                    {
+                        hashSet.Add(line);
+                        newBitMap[n] = bitMap[i];
+                        n++;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    int gg = 99;
+                }
+            }
+            
+            lines = hashSet.ToArray();
+            bitMap = BitMap.Resize(bitMap, lines.Length);
         }
 
         public void SaveTsvPreTrainData()
