@@ -7,56 +7,81 @@ using System.Threading.Tasks;
 
 namespace LP.Data
 {
-    internal class PreTrainDataReader : IDisposable
+    internal class PreTrainDataReader
     {
-        private const string CompleteLineFileName = "CompleteLine.txt";
         private const string PreTrainFileName = "license_separate_addresses.tsv";
+        private const string CompleteBitMapFileName = "btimap.dat";
 
-        private readonly string _completeFilePath;
+        private readonly string _completeBitMapFilePath;
         private readonly string _preTrainDataFilePath;
 
-        private int _completePreTrainDataLine;
         private StreamReader _reader;
+        private BitMap _bitMap;
+
+        private string[] _originalLines;
+        private int _currentLineIndex;
 
         public PreTrainDataReader(string StorePath)
         {
-            _completeFilePath = Path.Combine(StorePath, CompleteLineFileName);
+            _completeBitMapFilePath = Path.Combine(StorePath, CompleteBitMapFileName);
             _preTrainDataFilePath = Path.Combine(StorePath, PreTrainFileName);
+            _currentLineIndex = 0;
+
+            ReadTsvPreTrainData();
         }
 
-        public void ReadTsvPreTrainData()
+        private void ReadTsvPreTrainData()
         {
-            _completePreTrainDataLine = 0;
-            if (File.Exists(_completeFilePath))
+            _originalLines = File.ReadAllLines(_preTrainDataFilePath);
+
+            if (File.Exists(_completeBitMapFilePath))
             {
-                int.TryParse(File.ReadAllText(_completeFilePath), out _completePreTrainDataLine);
+                using (var fBitMap = new FileStream(_completeBitMapFilePath, FileMode.Open, FileAccess.Read))
+                {
+                    _bitMap = BitMap.FromStrea(fBitMap);
+                    if (_bitMap.Length != _originalLines.Length)
+                        _bitMap = default;
+                }
+            }
+
+            if (_bitMap == default)
+            {
+                _bitMap = new BitMap(_originalLines.Length);
             }
         }
 
         public void SaveTsvPreTrainData()
         {
-            File.WriteAllText(_completeFilePath, _completePreTrainDataLine.ToString());
+            File.WriteAllLines(_preTrainDataFilePath, _originalLines);
+            using (var fBitMap = new FileStream(_completeBitMapFilePath, FileMode.OpenOrCreate, FileAccess.Write))
+            {
+                _bitMap.Save(fBitMap);
+            }
+        }
+
+        public void SetRecord(string line)
+        {
+            MarkRecordOk();
+            _originalLines[_currentLineIndex] = line;
+        }
+
+        public void MarkRecordOk()
+        {
+            _bitMap[_currentLineIndex] = true;
         }
 
         public string GetNextRecord()
         {
-            if (_reader == default)
+            while (_currentLineIndex < _bitMap.Length)
             {
-                ReadTsvPreTrainData();
-                _reader = new StreamReader(_preTrainDataFilePath);
-                for (int i = _completePreTrainDataLine; i > 0; i--)
-                {
-                    _reader.ReadLine();
-                }
-            }
-            
-            return _reader.ReadLine();
-        }
+                _currentLineIndex++;
+                if (_bitMap[_currentLineIndex])
+                    continue;
 
-        public void Dispose()
-        {
-            if (_reader != default)
-                _reader.Dispose();
+                return _originalLines[_currentLineIndex];
+            }
+
+            return string.Empty;
         }
     }
 }

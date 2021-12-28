@@ -19,9 +19,10 @@ namespace LP.UI
         [SerializeField] AddressRecord postalAddressView = default;
         [SerializeField] AddressRecord outAddressView = default;
 
-        [SerializeField] Button _buttonTsv = default;
+        [SerializeField] Button _buttonSkip = default;
         [SerializeField] Button _buttonCopyTsv = default;
         [SerializeField] Button _buttonNext = default;
+        [SerializeField] Button _buttonDump = default;
 
         private PreTrainDataReader dataReader;
         private LibpostalNormalizeOptions optExpand;
@@ -30,11 +31,12 @@ namespace LP.UI
         void Start()
         {
             dataReader = new PreTrainDataReader(Application.streamingAssetsPath);
-            var currentLine = dataReader.GetNextRecord();   // headers
+            //var currentLine = dataReader.GetNextRecord();   // headers
 
-            //_buttonTsv.onClick.AddListener(CopyTsvToResult);
+            _buttonSkip.onClick.AddListener(OnSkipRecord);
             _buttonCopyTsv.onClick.AddListener(CopyTsvToResult);
             _buttonNext.onClick.AddListener(OnNextAddress);
+            _buttonDump.onClick.AddListener(DumpProgress);
 
             var dataPath = Path.Combine(Application.streamingAssetsPath, "Libpostal");
             bool a = libpostal.LibpostalSetupDatadir(dataPath);
@@ -68,13 +70,25 @@ namespace LP.UI
 
         private void OnDestroy()
         {
-            if (dataReader != default)
-                dataReader.Dispose();
+            //if (dataReader != default)
+            //    dataReader.Dispose();
 
             // Teardown (only called once at the end of your program)
             libpostal.LibpostalTeardown();
             libpostal.LibpostalTeardownParser();
             libpostal.LibpostalTeardownLanguageClassifier();
+        }
+
+        private void MarkTsvOk()
+        {
+            dataReader.MarkRecordOk();
+            SaveCurrentAddress();
+        }
+
+        private void OnSkipRecord()
+        {
+            outAddressView.Clear();
+            OnNextAddress();
         }
 
         private void CopyTsvToResult()
@@ -91,15 +105,14 @@ namespace LP.UI
             var row = string.Join("\t", tsvAddressView.Elements.OrderBy(e => e.Group).Select(e => e.Value));
             if (string.IsNullOrEmpty(row))
                 return;
-            var f = File.AppendText(Path.Combine(Application.streamingAssetsPath, "result.tsv"));
-            f.WriteLine(row);
-            f.Flush();
-            f.Close();
+
+            dataReader.SetRecord(row);
         }
 
         private void OnNextAddress()
         {
-            SaveCurrentAddress();
+            if (!outAddressView.IsEmpty)
+                SaveCurrentAddress();
 
             var currentLine = dataReader.GetNextRecord();
 
@@ -116,6 +129,11 @@ namespace LP.UI
             postalAddressView.Setup(addressComponents);
 
             outAddressView.Clear();
+        }
+
+        private void DumpProgress()
+        {
+            dataReader.SaveTsvPreTrainData();
         }
     }
 }

@@ -73,7 +73,7 @@ MonoBehaviour:
     m_StyleName: medium
     m_PointSize: 56
     m_Scale: 1
-    m_LineHeight: 81.144
+    m_LineHeight: 50
     m_AscentLine: 32
     m_CapLine: 31
     m_MeanLine: 22
@@ -95,7 +95,7 @@ MonoBehaviour:
       m_Height: 0
       m_HorizontalBearingX: 0
       m_HorizontalBearingY: 0
-      m_HorizontalAdvance: 28
+      m_HorizontalAdvance: 14
     m_GlyphRect:
       m_X: 0
       m_Y: 0
@@ -4207,7 +4207,7 @@ MonoBehaviour:
     italicTypeface: {fileID: 0}
   fontWeights: []
   normalStyle: 0
-  normalSpacingOffset: 0
+  normalSpacingOffset: -8
   boldStyle: 0.75
   boldSpacing: 7
   italicStyle: 35

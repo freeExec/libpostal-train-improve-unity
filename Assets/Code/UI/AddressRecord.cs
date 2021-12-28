@@ -32,6 +32,8 @@ namespace LP.UI
 
         public IEnumerable<ElementModel> Elements => _groupsRecord.Values.SelectMany(r => r.Elements);
 
+        public bool IsEmpty => _groupsRecord.All(r => r.Value.Elements.All(e => e.IsEmpty));
+
         private void Awake()
         {
             //var groups = ((AddressFormatter[])Enum.GetValues(typeof(AddressFormatter))).Take(_groupColors.Length);

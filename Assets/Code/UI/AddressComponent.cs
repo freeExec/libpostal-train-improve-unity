@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 namespace LP.UI
 {
-    public class AddressComponent : MonoBehaviour
+    public class AddressComponent : MonoBehaviour, IPointerClickHandler
     {
         [SerializeField] TextMeshProUGUI _label = default;
         [SerializeField] Movable _movable = default;
@@ -40,6 +40,14 @@ namespace LP.UI
         public void SetColorMarker(Color color)
         {
             _colorMarker.color = color;
+        }
+
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            if (eventData.button == PointerEventData.InputButton.Right)
+            {
+                //GetComponentInParent<SegregateWindow>()
+            }
         }
     }
 }
