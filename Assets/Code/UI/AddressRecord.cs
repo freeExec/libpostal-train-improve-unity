@@ -51,7 +51,11 @@ namespace LP.UI
 
             foreach (var component in components.GroupBy(c => c.Group))
             {
-                _groupsRecord[component.First().Group].SetupElements(component);
+                var group = component.First().Group;
+                if (_groupsRecord.TryGetValue(group, out ComponentsGroup groupRecord))
+                    groupRecord.SetupElements(component);
+                else
+                    Debug.LogWarning($"Group not found: {group} => {string.Join("|", component.Select(c => c.Value))}");
             }
         }
 

@@ -72,19 +72,11 @@ namespace LP.Data
             { 
                 var line = lines[i];
 
-                try
+                if (!hashSet.Contains(line))
                 {
-
-                    if (!hashSet.Contains(line))
-                    {
-                        hashSet.Add(line);
-                        newBitMap[n] = bitMap[i];
-                        n++;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    int gg = 99;
+                    hashSet.Add(line);
+                    newBitMap[n] = bitMap[i];
+                    n++;
                 }
             }
             

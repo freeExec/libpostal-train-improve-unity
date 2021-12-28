@@ -30,8 +30,6 @@ namespace LP.UI
 
         [SerializeField] EditComponentWindow _editComponentWindow = default;
 
-        [SerializeField] Transform _dragZone = default;
-
         private PreTrainDataReader dataReader;
         private LibpostalNormalizeOptions optExpand;
         private LibpostalAddressParserOptions parseOpt;
