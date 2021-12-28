@@ -19,13 +19,16 @@ namespace LP.Data
         private BitMap _bitMap;
 
         private string[] _originalLines;
-        private int _currentLineIndex;
+        private int _currentIndex;
+        private int _currentOriginalIndex;
+
+        private List<KeyValuePair<int, int>> _orderByLongLines;
 
         public PreTrainDataReader(string StorePath)
         {
             _completeBitMapFilePath = Path.Combine(StorePath, CompleteBitMapFileName);
             _preTrainDataFilePath = Path.Combine(StorePath, PreTrainFileName);
-            _currentLineIndex = 0;
+            _currentIndex = -1;
 
             ReadTsvPreTrainData();
         }
@@ -33,6 +36,14 @@ namespace LP.Data
         private void ReadTsvPreTrainData()
         {
             _originalLines = File.ReadAllLines(_preTrainDataFilePath);
+
+            _orderByLongLines = new List<KeyValuePair<int, int>>();
+            for (int i = 0; i < _originalLines.Length; i++)
+            {
+                _orderByLongLines.Add(new KeyValuePair<int, int>(_originalLines[i].Length, i));
+            }
+            _orderByLongLines.Sort((t1, t2) => t2.Key.CompareTo(t1.Key));
+
 
             if (File.Exists(_completeBitMapFilePath))
             {
@@ -62,23 +73,44 @@ namespace LP.Data
         public void SetRecord(string line)
         {
             MarkRecordOk();
-            _originalLines[_currentLineIndex] = line;
+            _originalLines[_currentOriginalIndex] = line;
         }
 
         public void MarkRecordOk()
         {
-            _bitMap[_currentLineIndex] = true;
+            _bitMap[_currentOriginalIndex] = true;
         }
 
         public string GetNextRecord()
         {
-            while (_currentLineIndex < _bitMap.Length)
+            int index = _currentIndex;
+            while (index < _bitMap.Length)
             {
-                _currentLineIndex++;
-                if (_bitMap[_currentLineIndex])
+                index++;
+                if (_bitMap[index])
                     continue;
 
-                return _originalLines[_currentLineIndex];
+                _currentIndex = index;
+                _currentOriginalIndex = index;
+                return _originalLines[_currentOriginalIndex];
+            }
+
+            return string.Empty;
+        }
+
+        public string GetNextRecordByLong()
+        {
+            int index = _currentIndex;
+            while (index < _bitMap.Length)
+            {
+                index++;
+                int originalIndex = _orderByLongLines[index].Value;
+                if (_bitMap[originalIndex])
+                    continue;
+
+                _currentIndex = index;
+                _currentOriginalIndex = originalIndex;
+                return _originalLines[_currentOriginalIndex];
             }
 
             return string.Empty;

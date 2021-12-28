@@ -9,7 +9,7 @@ using UnityEngine.EventSystems;
 
 namespace LP.UI
 {
-    public class ComponentsGroup : MonoBehaviour, IDropHandler
+    public class ComponentsGroup : MonoBehaviour, IDropHandler//, IArriveComponentHandler
     {
         [SerializeField] Image _background = default;
         [SerializeField] TextMeshProUGUI _labelGroup = default;
@@ -44,6 +44,8 @@ namespace LP.UI
                 view.SetColorMarker(_background.color);
                 view.Movable.OnBegin -= OnComponentBeginDrag;
                 view.Movable.OnBegin += OnComponentBeginDrag;
+                view.Movable.OnEnded -= OnComponentEndedDrag;
+                view.Movable.OnEnded += OnComponentEndedDrag;
             });
 
             _dropZone.gameObject.SetActive(_elements.All(d => d.IsEmpty));
@@ -55,14 +57,21 @@ namespace LP.UI
             {
                 //eventData.pointerDrag.transform.SetParent(transform, true);
                 var dropComponent = eventData.pointerDrag.GetComponent<AddressComponent>();
-                ArriveComponent(dropComponent);
+                ArriveComponent(dropComponent.Element);
                 dropComponent.SetEmpty();
             }
         }
 
-        private void ArriveComponent(AddressComponent component)
+        /*public void ArriveComponent(AddressComponent component)
         {
             var element = new ElementModel(Group, component.Element.Value, ElementSource.ManualUserSeparate);
+            _elements.Add(element);
+            UpdateElements();
+        }*/
+
+        public void ArriveComponent(ElementModel originElement)
+        {
+            var element = new ElementModel(Group, originElement.Value, ElementSource.ManualUserSeparate);
             _elements.Add(element);
             UpdateElements();
         }
@@ -78,6 +87,14 @@ namespace LP.UI
             var component = m.GetComponent<AddressComponent>();
             component.Movable.OnBegin -= OnComponentBeginDrag;
             DepartureComponent(component);
+        }
+
+        private void OnComponentEndedDrag(Movable m)
+        {
+            var component = m.GetComponent<AddressComponent>();
+            component.Movable.OnEnded -= OnComponentEndedDrag;
+            if (!component.Movable.IsDropping)
+                ArriveComponent(component.Element);
         }
     }
 }

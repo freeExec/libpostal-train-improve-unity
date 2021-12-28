@@ -13,6 +13,7 @@ namespace LP.Model
         PreparePythonScript,
         Libpostal,
         ManualUserSeparate,
+        ManualUserEditing,
     }
 
     public class ElementModel

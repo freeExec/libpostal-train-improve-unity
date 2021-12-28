@@ -7,8 +7,8 @@ using UnityEngine.UI;
 
 namespace LP.UI
 {
-    public class Movable : MonoBehaviour, IPointerClickHandler,
-        IPointerDownHandler, IPointerUpHandler,
+    public class Movable : MonoBehaviour, //IPointerClickHandler,
+        //IPointerDownHandler, IPointerUpHandler,
         IDragHandler, IBeginDragHandler, IEndDragHandler, IInitializePotentialDragHandler
     {
         private Canvas _parentCanvas;
@@ -20,6 +20,10 @@ namespace LP.UI
         private Transform _dragZone;
 
         public event Action<Movable> OnBegin = delegate (Movable m) { };
+        public event Action<Movable> OnEnded = delegate (Movable m) { };
+
+        public ComponentsGroup FromComponentGroup { get; private set; }
+        public bool IsDropping { get; set; }
 
         private void Start()
         {
@@ -38,7 +42,7 @@ namespace LP.UI
             _dragZone = dragZone;
         }
 
-        public void OnPointerClick(PointerEventData eventData)
+        /*public void OnPointerClick(PointerEventData eventData)
         {
         }
 
@@ -49,7 +53,7 @@ namespace LP.UI
         public void OnPointerUp(PointerEventData eventData)
         {
         }
-
+        */
         public void OnInitializePotentialDrag(PointerEventData eventData)
         {
             //var go = Instantiate(gameObject, transform.position, Quaternion.identity, _dragZone);
@@ -58,8 +62,10 @@ namespace LP.UI
 
         public void OnBeginDrag(PointerEventData eventData)
         {
+            FromComponentGroup = GetComponentInParent<ComponentsGroup>();
             _originParent = transform.parent;
             transform.SetParent(_dragZone, true);
+
 
             if (_originParent.childCount == 0)
             {
@@ -70,6 +76,8 @@ namespace LP.UI
             _canvasGroup.blocksRaycasts = false;
             _layoutElement.ignoreLayout = true;
 
+            IsDropping = false;
+
             OnBegin(this);
         }
 
@@ -77,10 +85,20 @@ namespace LP.UI
         {
             transform.SetParent(_originParent, true);
 
+            /*if (!IsDropping)
+            {
+                FromComponentGroup.ArriveComponent(GetComponent<AddressComponent>());
+            }*/
+
             _originParent = null;
+            FromComponentGroup = null;
 
             _canvasGroup.blocksRaycasts = true;
             _layoutElement.ignoreLayout = false;
+
+            gameObject.SetActive(false);
+
+            OnEnded(this);
         }
 
         public void OnDrag(PointerEventData eventData)

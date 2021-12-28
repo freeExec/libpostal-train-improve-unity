@@ -14,10 +14,8 @@ namespace LP.UI
         [SerializeField] Movable _movable = default;
         [SerializeField] Image _colorMarker = default;
 
-
         public ElementModel Element { get; private set; }
         public Movable Movable => _movable;
-
 
         public void Setup(ElementModel element, Transform dragZone)
         {

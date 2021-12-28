@@ -19,10 +19,18 @@ namespace LP.UI
         [SerializeField] AddressRecord postalAddressView = default;
         [SerializeField] AddressRecord outAddressView = default;
 
+        [SerializeField] DroperBox _trashDrop = default;
+        [SerializeField] DroperBox _libpostalParseDrop = default;
+        [SerializeField] DroperBox _editComponentDrop = default;
+
         [SerializeField] Button _buttonSkip = default;
-        [SerializeField] Button _buttonCopyTsv = default;
+        //[SerializeField] Button _buttonCopyTsv = default;
         [SerializeField] Button _buttonNext = default;
         [SerializeField] Button _buttonDump = default;
+
+        [SerializeField] EditComponentWindow _editComponentWindow = default;
+
+        [SerializeField] Transform _dragZone = default;
 
         private PreTrainDataReader dataReader;
         private LibpostalNormalizeOptions optExpand;
@@ -34,9 +42,12 @@ namespace LP.UI
             //var currentLine = dataReader.GetNextRecord();   // headers
 
             _buttonSkip.onClick.AddListener(OnSkipRecord);
-            _buttonCopyTsv.onClick.AddListener(OnCopyTsvToResult);
             _buttonNext.onClick.AddListener(OnNextAddress);
             _buttonDump.onClick.AddListener(DumpProgress);
+
+            _trashDrop.OnDropAddressComponent += (component) => component.SetEmpty();
+            _libpostalParseDrop.OnDropAddressComponent += (component) => ShowLibpostalParse(component.Element.Value);
+            _editComponentDrop.OnDropAddressComponent += OnEditComponentBegin;
 
             var dataPath = Path.Combine(Application.streamingAssetsPath, "Libpostal");
             bool a = libpostal.LibpostalSetupDatadir(dataPath);
@@ -65,7 +76,7 @@ namespace LP.UI
 
             parseOpt = new LibpostalAddressParserOptions();
 
-            OnNextAddress();
+            ShowNextAddress();
         }
 
         private void OnDestroy()
@@ -90,11 +101,6 @@ namespace LP.UI
             ShowNextAddress();
         }
 
-        private void OnCopyTsvToResult()
-        {
-            outAddressView.Setup(tsvAddressView.Elements.Where(e => !e.IsEmpty));
-        }
-
         private void SaveAddress(AddressRecord record)
         {
             //var row = string.Join("\t", tsvAddressView.Elements.Where(e => !e.IsEmpty).OrderBy(e => e.Group).Select(e => e.Value));
@@ -117,7 +123,8 @@ namespace LP.UI
 
         private void ShowNextAddress()
         {
-            var currentLine = dataReader.GetNextRecord();
+            //var currentLine = dataReader.GetNextRecord();
+            var currentLine = dataReader.GetNextRecordByLong();
 
             var addressComponents = currentLine
                 .Split(SPLIT_SEPATARE)
@@ -125,19 +132,42 @@ namespace LP.UI
                     new ElementModel(address, value, ElementSource.PreparePythonScript));
             tsvAddressView.Setup(addressComponents);
 
-            var parse = libpostal.LibpostalParseAddress(currentLine, parseOpt);
+            ShowLibpostalParse(currentLine);
 
-            addressComponents = parse.Results
-                .Select(r => new ElementModel(AddressFormatterHelper.GetFormatterFromLibpostal(r.Key), r.Value, ElementSource.Libpostal));
-            postalAddressView.Setup(addressComponents);
-
-            outAddressView.Clear();
+            //outAddressView.Clear();
+            outAddressView.Setup(tsvAddressView.Elements.Where(e => !e.IsEmpty));
         }
 
         private void DumpProgress()
         {
             dataReader.SaveTsvPreTrainData();
             Debug.Log("Saved");
+        }
+
+        private void ShowLibpostalParse(string addrStr)
+        {
+            var parse = libpostal.LibpostalParseAddress(addrStr, parseOpt);
+
+            var addressComponents = parse.Results
+                .Select(r => new ElementModel(AddressFormatterHelper.GetFormatterFromLibpostal(r.Key), r.Value, ElementSource.Libpostal));
+            postalAddressView.Setup(addressComponents);
+        }
+
+        private ComponentsGroup _componentsGroup;
+        private void OnEditComponentBegin(AddressComponent component)
+        {
+            _componentsGroup = component.Movable.FromComponentGroup;
+            _editComponentWindow.Setup(component);
+
+            _editComponentWindow.OnEditFinish += OnEditComponentFinish;
+
+            _editComponentWindow.gameObject.SetActive(true);
+        }
+
+        private void OnEditComponentFinish(ElementModel element)
+        {
+            _editComponentWindow.OnEditFinish -= OnEditComponentFinish;
+            _componentsGroup.ArriveComponent(element);
         }
     }
 }
