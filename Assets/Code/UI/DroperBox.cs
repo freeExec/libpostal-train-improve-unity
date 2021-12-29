@@ -15,6 +15,9 @@ namespace LP.UI
             if (eventData.pointerDrag != default)
             {
                 var dropComponent = eventData.pointerDrag.GetComponent<AddressComponent>();
+                if (dropComponent == null)
+                    return;
+
                 dropComponent.Movable.IsDropping = true;
                 OnDropAddressComponent(dropComponent);
                 //var arriverHandler = GetComponent<IArriveComponentHandler>();

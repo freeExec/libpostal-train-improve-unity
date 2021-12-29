@@ -30,6 +30,7 @@ namespace LP.UI
         [SerializeField] Button _buttonDump = default;
 
         [SerializeField] EditComponentWindow _editComponentWindow = default;
+        [SerializeField] TextMeshProUGUI _counter = default;
 
         private PreTrainDataReader dataReader;
         private LibpostalNormalizeOptions optExpand;
@@ -126,6 +127,8 @@ namespace LP.UI
                 SaveAddress(tsvAddressView);
 
             ShowNextAddress();
+
+            _buttonDump.interactable = true;
         }
 
         private void ShowNextAddress()
@@ -143,20 +146,41 @@ namespace LP.UI
 
             //outAddressView.Clear();
             outAddressView.Setup(tsvAddressView.Elements.Where(e => !e.IsEmpty));
+
+            _counter.text = $"Completed: {dataReader.CompletedLines}/{dataReader.TotalLines} ({(dataReader.CompletedLines / dataReader.TotalLines).ToString("P2")})";
         }
 
         private void DumpProgress()
         {
             dataReader.SaveTsvPreTrainData();
             Debug.Log("Saved");
+            _buttonDump.interactable = false;
         }
 
         private void ShowLibpostalParse(string addrStr)
         {
             var parse = libpostal.LibpostalParseAddress(addrStr, parseOpt);
 
+            var addrStrLow = addrStr.ToLowerInvariant();
+
+            Func<string, string> recoveryCase = (libpostal) =>
+            {
+                int found = addrStrLow.IndexOf(libpostal);
+                if (found != -1)
+                {
+                    return addrStr.Substring(found, libpostal.Length);
+                }
+                return libpostal;
+            };
+
+
             var addressComponents = parse.Results
-                .Select(r => new ElementModel(AddressFormatterHelper.GetFormatterFromLibpostal(r.Key), r.Value, ElementSource.Libpostal));
+                .Select(r => new ElementModel(
+                    AddressFormatterHelper.GetFormatterFromLibpostal(r.Key), 
+                    recoveryCase(r.Value), 
+                    ElementSource.Libpostal
+                ));
+
             postalAddressView.Setup(addressComponents);
         }
 

@@ -22,9 +22,12 @@ namespace LP.Data
         private int _currentIndex;
         private int _currentOriginalIndex;
 
+
         private List<KeyValuePair<int, int>> _orderByLongLines;
 
         public string Header => _originalLines[0];
+        public int CompletedLines { get; private set; }
+        public int TotalLines => _originalLines.Length;
 
         public PreTrainDataReader(string StorePath)
         {
@@ -38,7 +41,6 @@ namespace LP.Data
         private void ReadTsvPreTrainData()
         {
             _originalLines = File.ReadAllLines(_preTrainDataFilePath);
-
 
             if (File.Exists(_completeBitMapFilePath))
             {
@@ -57,6 +59,8 @@ namespace LP.Data
 
             RemoveDublicate(ref _originalLines, ref _bitMap);
 
+            CompletedLines = _bitMap.GetMappedCount();
+
             _orderByLongLines = new List<KeyValuePair<int, int>>();
             for (int i = 0; i < _originalLines.Length; i++)
             {
@@ -67,22 +71,25 @@ namespace LP.Data
 
         private static void RemoveDublicate(ref string[] lines, ref BitMap bitMap)
         {
-            var hashSet = new HashSet<string>();
+            var newLines = new List<string>();
+            var hashSetLow = new HashSet<string>();
             var newBitMap = new BitMap(bitMap.Length);
 
             for (int i = 0, n = 0; i < lines.Length; i++)
             {
                 var line = lines[i];
+                var lineLow = line.ToLowerInvariant();
 
-                if (!hashSet.Contains(line))
+                if (!hashSetLow.Contains(lineLow))
                 {
-                    hashSet.Add(line);
+                    newLines.Add(line);
+                    hashSetLow.Add(lineLow);
                     newBitMap[n] = bitMap[i];
                     n++;
                 }
             }
 
-            lines = hashSet.ToArray();
+            lines = newLines.ToArray();
             bitMap = BitMap.Resize(bitMap, lines.Length);
         }
 
@@ -104,6 +111,7 @@ namespace LP.Data
         public void MarkRecordOk()
         {
             _bitMap[_currentOriginalIndex] = true;
+            CompletedLines++;
         }
 
         public string GetNextRecord()

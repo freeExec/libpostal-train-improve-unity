@@ -61,6 +61,22 @@ namespace LP.Data
             writer.Write(_map);
         }
 
+        public int GetMappedCount()
+        {
+            int count = 0;
+            for (int i = 0; i < _compactLength; i++)
+            {
+                int b = _map[i];
+                for (int n = 0; n < BIT_TO_BYTE; n++)
+                {
+                    if ((b & (1 << n)) != 0)
+                        count++;
+                }
+            }
+
+            return count;
+        }
+
         public static BitMap Resize(BitMap bitMap, int newLength)
         {            
             var newBitMap = new BitMap(newLength);
