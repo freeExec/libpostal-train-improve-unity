@@ -70,6 +70,7 @@ namespace LP.UI
             if (_originParent.childCount == 0)
             {
                 var go = Instantiate(gameObject, transform.position, Quaternion.identity, _originParent);
+                go.name = "AddressComponet(reserve)";
                 go.SetActive(false);
             }
 

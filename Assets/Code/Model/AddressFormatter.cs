@@ -38,7 +38,7 @@ namespace LP.Model
         private static Dictionary<string, AddressFormatter> _libpostalConverter = new Dictionary<string, AddressFormatter>()
         {
             { "NONE_NULL",      AddressFormatter.NotSet         },
-            { "postcode",      AddressFormatter.PostCode       },
+            { "postcode",       AddressFormatter.PostCode       },
             { "state",          AddressFormatter.State          },
             { "state_district", AddressFormatter.StateDisctrict },
             { "city",           AddressFormatter.City           },
