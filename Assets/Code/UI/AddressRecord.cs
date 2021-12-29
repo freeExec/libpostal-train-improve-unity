@@ -13,18 +13,7 @@ namespace LP.UI
         [SerializeField] Color[] _groupColors;
         [SerializeField] Transform _container = default;
         [SerializeField] Transform _dragZone = default;
-
-        private AddressFormatter[] _addressColumns = new AddressFormatter[]
-        {
-            AddressFormatter.PostCode,
-            AddressFormatter.State,
-            AddressFormatter.StateDisctrict,
-            AddressFormatter.City,
-            AddressFormatter.CityDistrict,
-            AddressFormatter.Road,
-            AddressFormatter.HouseNumber,
-            AddressFormatter.Unit,
-        };
+        [SerializeField] AddressFormatter[] _addressColumns = default;
 
         private Dictionary<AddressFormatter, ComponentsGroup> _groupsRecord;
 

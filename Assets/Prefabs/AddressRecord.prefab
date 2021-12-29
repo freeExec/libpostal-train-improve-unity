@@ -87,6 +87,7 @@ MonoBehaviour:
   - {r: 0.77254903, g: 0.41960785, b: 0.43137255, a: 1}
   _container: {fileID: 8464892032367555685}
   _dragZone: {fileID: 0}
+  _addressColumns: 0000000001000000020000000300000004000000050000000600000007000000
 --- !u!1001 &8676404557376513936
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -226,6 +227,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.x
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 941693835009843778, guid: f25006f5b6113be43a2a85b1bbf5f674, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 941693835009843779, guid: f25006f5b6113be43a2a85b1bbf5f674, type: 3}
       propertyPath: m_fontSizeBase
       value: 22
@@ -271,6 +276,30 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 941693836004076131, guid: f25006f5b6113be43a2a85b1bbf5f674, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4775150528768393778, guid: f25006f5b6113be43a2a85b1bbf5f674, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4775150528768393778, guid: f25006f5b6113be43a2a85b1bbf5f674, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4775150528768393778, guid: f25006f5b6113be43a2a85b1bbf5f674, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4775150528768393778, guid: f25006f5b6113be43a2a85b1bbf5f674, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4775150528768393778, guid: f25006f5b6113be43a2a85b1bbf5f674, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4775150528768393778, guid: f25006f5b6113be43a2a85b1bbf5f674, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
