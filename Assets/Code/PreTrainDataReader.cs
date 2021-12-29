@@ -24,6 +24,8 @@ namespace LP.Data
 
         private List<KeyValuePair<int, int>> _orderByLongLines;
 
+        public string Header => _originalLines[0];
+
         public PreTrainDataReader(string StorePath)
         {
             _completeBitMapFilePath = Path.Combine(StorePath, CompleteBitMapFileName);
@@ -67,9 +69,9 @@ namespace LP.Data
         {
             var hashSet = new HashSet<string>();
             var newBitMap = new BitMap(bitMap.Length);
-            
+
             for (int i = 0, n = 0; i < lines.Length; i++)
-            { 
+            {
                 var line = lines[i];
 
                 if (!hashSet.Contains(line))
@@ -79,7 +81,7 @@ namespace LP.Data
                     n++;
                 }
             }
-            
+
             lines = hashSet.ToArray();
             bitMap = BitMap.Resize(bitMap, lines.Length);
         }

@@ -8,6 +8,7 @@ using TMPro;
 using LP.Data;
 using LP.Model;
 using UnityEngine.UI;
+using System;
 
 namespace LP.UI
 {
@@ -33,10 +34,13 @@ namespace LP.UI
         private PreTrainDataReader dataReader;
         private LibpostalNormalizeOptions optExpand;
         private LibpostalAddressParserOptions parseOpt;
+        private List<AddressFormatter> headerOrder;
 
         void Start()
         {
             dataReader = new PreTrainDataReader(Application.streamingAssetsPath);
+
+            headerOrder = HeaderToAddress(dataReader.Header);
             //var currentLine = dataReader.GetNextRecord();   // headers
 
             _buttonSkip.onClick.AddListener(OnSkipRecord);
@@ -102,9 +106,14 @@ namespace LP.UI
         private void SaveAddress(AddressRecord record)
         {
             //var row = string.Join("\t", tsvAddressView.Elements.Where(e => !e.IsEmpty).OrderBy(e => e.Group).Select(e => e.Value));
-            var row = string.Join("\t", record.Elements.OrderBy(e => e.Group).Select(e => e.Value));
-            if (string.IsNullOrEmpty(row))
+
+            //var row = string.Join("\t", record.Elements.OrderBy(e => e.Group).Select(e => e.Value));
+            //if (string.IsNullOrEmpty(row))
+            var elementsMap = record.Elements.ToLookup(e => e.Group);
+            if (record.Elements.All(e => e.IsEmpty))
                 return;
+
+            var row = string.Join("\t", headerOrder.Select(h => string.Join(" ", elementsMap[h].Select(e => e.Value))));
 
             dataReader.SetRecord(row);
         }
@@ -166,6 +175,14 @@ namespace LP.UI
         {
             _editComponentWindow.OnEditFinish -= OnEditComponentFinish;
             _componentsGroup.ArriveComponent(element);
+        }
+
+        private static List<AddressFormatter> HeaderToAddress(string header)
+        {
+            //index	region	district	city	suburb	street	house_number	unit
+            var helperReverce = Enum.GetValues(typeof(AddressFormatter)).Cast<AddressFormatter>().ToDictionary(af => af.ToTsvString());
+            var h2a = header.Split('\t').Select(c => helperReverce[c]).ToList();
+            return h2a;
         }
     }
 }

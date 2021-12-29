@@ -23,15 +23,15 @@ namespace LP.Model
     {
         private static Dictionary<AddressFormatter, string> _converter = new Dictionary<AddressFormatter, string>()
         {
-            { AddressFormatter.NotSet,          "NONE_NULL" },
-            { AddressFormatter.PostCode,        "index"     },
-            { AddressFormatter.State,           "region"    },
-            { AddressFormatter.StateDisctrict,  "district"  },
-            { AddressFormatter.City,            "city"      },
-            { AddressFormatter.CityDistrict,    "suburb"    },
-            { AddressFormatter.Road,            "street"    },
-            { AddressFormatter.HouseNumber,     "house"     },
-            { AddressFormatter.Unit,            "unit"      },
+            { AddressFormatter.NotSet,          "NONE_NULL"     },
+            { AddressFormatter.PostCode,        "index"         },
+            { AddressFormatter.State,           "region"        },
+            { AddressFormatter.StateDisctrict,  "district"      },
+            { AddressFormatter.City,            "city"          },
+            { AddressFormatter.CityDistrict,    "suburb"        },
+            { AddressFormatter.Road,            "street"        },
+            { AddressFormatter.HouseNumber,     "house_number"  },
+            { AddressFormatter.Unit,            "unit"          },
         };
 
         // private static Dictionary<string, AddressFormatter> _reverseConverter = _converter.ToDictionary(c => c.Value, c => c.Key);

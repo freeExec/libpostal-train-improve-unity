@@ -553,7 +553,6 @@ MonoBehaviour:
   _buttonNext: {fileID: 1502171354}
   _buttonDump: {fileID: 278062736}
   _editComponentWindow: {fileID: 563569108}
-  _dragZone: {fileID: 519444573}
 --- !u!1 &203525652
 GameObject:
   m_ObjectHideFlags: 0
@@ -4078,7 +4077,7 @@ MonoBehaviour:
   m_SelectionColor: {r: 0.65882355, g: 0.80784315, b: 1, a: 0.7529412}
   m_Text: 
   m_CaretBlinkRate: 0.85
-  m_CaretWidth: 1
+  m_CaretWidth: 2
   m_ReadOnly: 0
   m_RichText: 0
   m_GlobalFontAsset: {fileID: 11400000, guid: db2860944c1c42847a6a0a940411cfd5, type: 2}
