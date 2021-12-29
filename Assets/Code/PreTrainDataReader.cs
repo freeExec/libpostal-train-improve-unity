@@ -75,10 +75,17 @@ namespace LP.Data
             var hashSetLow = new HashSet<string>();
             var newBitMap = new BitMap(bitMap.Length);
 
+            int columns = lines[0].Split('\t').Length;
+
             for (int i = 0, n = 0; i < lines.Length; i++)
             {
                 var line = lines[i];
                 var lineLow = line.ToLowerInvariant();
+
+                if (line.Split('\t').Length != columns)
+                {
+                    UnityEngine.Debug.LogWarning(line);
+                }
 
                 if (!hashSetLow.Contains(lineLow))
                 {

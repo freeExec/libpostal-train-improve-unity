@@ -55,9 +55,12 @@ namespace LP.UI
         {
             if (eventData.pointerDrag != default)
             {
-                //eventData.pointerDrag.transform.SetParent(transform, true);
                 var dropComponent = eventData.pointerDrag.GetComponent<AddressComponent>();
                 ArriveComponent(dropComponent.Element);
+                if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+                {
+                    dropComponent.Movable.FromComponentGroup.ArriveComponent(dropComponent.Element);
+                }
                 dropComponent.SetEmpty();
             }
         }

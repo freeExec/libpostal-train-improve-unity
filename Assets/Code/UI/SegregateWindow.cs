@@ -25,7 +25,7 @@ namespace LP.UI
         [SerializeField] DroperBox _editComponentDrop = default;
 
         [SerializeField] Button _buttonSkip = default;
-        //[SerializeField] Button _buttonCopyTsv = default;
+        [SerializeField] Button _buttonRefresh = default;
         [SerializeField] Button _buttonNext = default;
         [SerializeField] Button _buttonDump = default;
 
@@ -47,6 +47,7 @@ namespace LP.UI
             _buttonSkip.onClick.AddListener(OnSkipRecord);
             _buttonNext.onClick.AddListener(OnNextAddress);
             _buttonDump.onClick.AddListener(DumpProgress);
+            _buttonRefresh.onClick.AddListener(OnRefreshAddress);
 
             _trashDrop.OnDropAddressComponent += (component) => component.SetEmpty();
             _libpostalParseDrop.OnDropAddressComponent += (component) => ShowLibpostalParse(component.Element.Value);
@@ -131,23 +132,29 @@ namespace LP.UI
             _buttonDump.interactable = true;
         }
 
-        private void ShowNextAddress()
+        private void ShowNextAddress(bool getNextAddr = true)
         {
-            //var currentLine = dataReader.GetNextRecord();
-            var currentLine = dataReader.GetNextRecordByLong();
+            if (getNextAddr)
+                _currentLine = dataReader.GetNextRecordByLong();
 
-            var addressComponents = currentLine
+            var addressComponents = _currentLine
                 .Split(SPLIT_SEPATARE)
                 .Zip(tsvAddressView.AddressColumns, (value, address) =>
                     new ElementModel(address, value, ElementSource.PreparePythonScript));
             tsvAddressView.Setup(addressComponents);
 
-            ShowLibpostalParse(currentLine);
+            ShowLibpostalParse(_currentLine);
 
             //outAddressView.Clear();
             outAddressView.Setup(tsvAddressView.Elements.Where(e => !e.IsEmpty));
 
             _counter.text = $"Completed: {dataReader.CompletedLines}/{dataReader.TotalLines} ({(dataReader.CompletedLines / dataReader.TotalLines).ToString("P2")})";
+        }
+
+        private string _currentLine;
+        private void OnRefreshAddress()
+        {
+            ShowNextAddress(false);
         }
 
         private void DumpProgress()
@@ -161,7 +168,7 @@ namespace LP.UI
         {
             var parse = libpostal.LibpostalParseAddress(addrStr, parseOpt);
 
-            var addrStrLow = addrStr.ToLowerInvariant();
+            var addrStrLow = addrStr.ToLowerInvariant().Replace('\t', ' ').Replace(',', ' ');
 
             Func<string, string> recoveryCase = (libpostal) =>
             {

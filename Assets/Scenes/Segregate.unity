@@ -551,6 +551,7 @@ MonoBehaviour:
   _libpostalParseDrop: {fileID: 1840912672}
   _editComponentDrop: {fileID: 239202162}
   _buttonSkip: {fileID: 375060625}
+  _buttonRefresh: {fileID: 2079652693}
   _buttonNext: {fileID: 1502171354}
   _buttonDump: {fileID: 278062736}
   _editComponentWindow: {fileID: 563569108}
@@ -2113,7 +2114,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 2. Copy TSV
+  m_text: 2. Refresh
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: db2860944c1c42847a6a0a940411cfd5, type: 2}
   m_sharedMaterial: {fileID: 5343430339420016383, guid: db2860944c1c42847a6a0a940411cfd5, type: 2}
@@ -3067,7 +3068,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8464892031849765644, guid: d68ff6778f6608948b59b564b9c93b56, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 110
       objectReference: {fileID: 0}
     - target: {fileID: 8464892031979965939, guid: d68ff6778f6608948b59b564b9c93b56, type: 3}
       propertyPath: m_AnchorMax.y
@@ -4440,7 +4441,7 @@ GameObject:
   - component: {fileID: 2079652694}
   - component: {fileID: 2079652693}
   m_Layer: 5
-  m_Name: ButtonFromTSV
+  m_Name: ButtonRefresh
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4661,7 +4662,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8464892031849765644, guid: d68ff6778f6608948b59b564b9c93b56, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 110
       objectReference: {fileID: 0}
     - target: {fileID: 8464892031979965939, guid: d68ff6778f6608948b59b564b9c93b56, type: 3}
       propertyPath: m_AnchorMax.y

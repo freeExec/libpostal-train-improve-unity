@@ -86,9 +86,9 @@ namespace LP.UI
         {
             transform.SetParent(_originParent, true);
 
-            /*if (!IsDropping)
+            /*if (IsDropping && Input.GetKey(KeyCode.LeftShift))
             {
-                FromComponentGroup.ArriveComponent(GetComponent<AddressComponent>());
+                FromComponentGroup.ArriveComponent(GetComponent<AddressComponent>().Element);
             }*/
 
             _originParent = null;
