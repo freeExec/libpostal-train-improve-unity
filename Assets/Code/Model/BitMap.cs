@@ -77,7 +77,7 @@ namespace LP.Data
             return count;
         }
 
-        public static BitMap Resize(BitMap bitMap, int newLength)
+        public static BitMap Trim(BitMap bitMap, int newLength)
         {            
             var newBitMap = new BitMap(newLength);
             Array.Copy(bitMap._map, newBitMap._map, newBitMap._compactLength);

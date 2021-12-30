@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine.Profiling;
 
 namespace LP.Data
 {
@@ -62,22 +63,29 @@ namespace LP.Data
 
         private void CleanAndPrepare()
         {
+            Profiler.BeginSample("CleanAndPrepare");
             RemoveDublicate(ref _originalLines, ref _bitMap);
 
+            Profiler.BeginSample("GetMappedCount");
             CompletedLines = _bitMap.GetMappedCount();
+            Profiler.EndSample();
 
+            Profiler.BeginSample("OrderByLongLines");
             _orderByLongLines = new List<KeyValuePair<int, int>>();
             for (int i = 0; i < _originalLines.Length; i++)
             {
                 _orderByLongLines.Add(new KeyValuePair<int, int>(_originalLines[i].Length, i));
             }
             _orderByLongLines.Sort((t1, t2) => t2.Key.CompareTo(t1.Key));
+            Profiler.EndSample();
+            Profiler.EndSample();
         }
 
         private static void RemoveDublicate(ref string[] lines, ref BitMap bitMap)
         {
-            var newLines = new List<string>();
-            var hashSetLow = new HashSet<string>();
+            Profiler.BeginSample("RemoveDublicate");
+            var newLines = new List<string>(lines.Length);
+            var hashSetLow = new HashSet<string>(/*lines.Length*/);
             var newBitMap = new BitMap(bitMap.Length);
 
             int columnsHeader = lines[0].Split('\t').Length;
@@ -97,19 +105,25 @@ namespace LP.Data
                     UnityEngine.Debug.LogWarning(line);
                 }
 
+                Profiler.BeginSample("Contains");
                 if (!hashSetLow.Contains(lineLow))
                 {
+                    Profiler.BeginSample("Add");
                     newLines.Add(line);
                     hashSetLow.Add(lineLow);
                     newBitMap[n] = bitMap[i];
                     n++;
+                    Profiler.EndSample();
                 }
+                Profiler.EndSample();
             }
-
-            UnityEngine.Debug.Log($"Remove lines: {lines.Length - newLines.Count}");
+            int removeLines = lines.Length - newLines.Count;
 
             lines = newLines.ToArray();
-            bitMap = BitMap.Resize(bitMap, lines.Length);
+            bitMap = BitMap.Trim(bitMap, lines.Length);
+
+            Profiler.EndSample();
+            UnityEngine.Debug.Log($"Remove lines: {removeLines}");
         }
 
         public void SaveTsvPreTrainData()
