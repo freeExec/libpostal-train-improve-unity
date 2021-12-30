@@ -281,7 +281,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: SKIP
+  m_text: DELETE
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: db2860944c1c42847a6a0a940411cfd5, type: 2}
   m_sharedMaterial: {fileID: 5343430339420016383, guid: db2860944c1c42847a6a0a940411cfd5, type: 2}
@@ -550,7 +550,7 @@ MonoBehaviour:
   _trashDrop: {fileID: 583805854}
   _libpostalParseDrop: {fileID: 1840912672}
   _editComponentDrop: {fileID: 239202162}
-  _buttonSkip: {fileID: 375060625}
+  _buttonDelete: {fileID: 375060625}
   _buttonRefresh: {fileID: 2079652693}
   _buttonNext: {fileID: 1502171354}
   _buttonDump: {fileID: 278062736}
@@ -966,7 +966,7 @@ GameObject:
   - component: {fileID: 375060626}
   - component: {fileID: 375060625}
   m_Layer: 5
-  m_Name: ButtonSkipRecord
+  m_Name: ButtonDeleteRecord
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3390,7 +3390,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: mask
+  m_text: save
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: db2860944c1c42847a6a0a940411cfd5, type: 2}
   m_sharedMaterial: {fileID: 5343430339420016383, guid: db2860944c1c42847a6a0a940411cfd5, type: 2}

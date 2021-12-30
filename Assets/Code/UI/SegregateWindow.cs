@@ -24,7 +24,7 @@ namespace LP.UI
         [SerializeField] DroperBox _libpostalParseDrop = default;
         [SerializeField] DroperBox _editComponentDrop = default;
 
-        [SerializeField] Button _buttonSkip = default;
+        [SerializeField] Button _buttonDelete = default;
         [SerializeField] Button _buttonRefresh = default;
         [SerializeField] Button _buttonNext = default;
         [SerializeField] Button _buttonDump = default;
@@ -44,7 +44,7 @@ namespace LP.UI
             headerOrder = HeaderToAddress(dataReader.Header);
             //var currentLine = dataReader.GetNextRecord();   // headers
 
-            _buttonSkip.onClick.AddListener(OnSkipRecord);
+            _buttonDelete.onClick.AddListener(OnDeleteRecord);
             _buttonNext.onClick.AddListener(OnNextAddress);
             _buttonDump.onClick.AddListener(DumpProgress);
             _buttonRefresh.onClick.AddListener(OnRefreshAddress);
@@ -100,9 +100,11 @@ namespace LP.UI
             SaveAddress();
         }*/
 
-        private void OnSkipRecord()
+        private void OnDeleteRecord()
         {
+            dataReader.DeleteCurrentRecord();
             ShowNextAddress();
+            _buttonDump.interactable = true;
         }
 
         private void SaveAddress(AddressRecord record)
@@ -183,8 +185,8 @@ namespace LP.UI
 
             var addressComponents = parse.Results
                 .Select(r => new ElementModel(
-                    AddressFormatterHelper.GetFormatterFromLibpostal(r.Key), 
-                    recoveryCase(r.Value), 
+                    AddressFormatterHelper.GetFormatterFromLibpostal(r.Key),
+                    recoveryCase(r.Value),
                     ElementSource.Libpostal
                 ));
 

@@ -57,6 +57,11 @@ namespace LP.Data
                 _bitMap = new BitMap(_originalLines.Length);
             }
 
+            CleanAndPrepare();
+        }
+
+        private void CleanAndPrepare()
+        {
             RemoveDublicate(ref _originalLines, ref _bitMap);
 
             CompletedLines = _bitMap.GetMappedCount();
@@ -75,14 +80,19 @@ namespace LP.Data
             var hashSetLow = new HashSet<string>();
             var newBitMap = new BitMap(bitMap.Length);
 
-            int columns = lines[0].Split('\t').Length;
+            int columnsHeader = lines[0].Split('\t').Length;
 
             for (int i = 0, n = 0; i < lines.Length; i++)
             {
                 var line = lines[i];
-                var lineLow = line.ToLowerInvariant();
 
-                if (line.Split('\t').Length != columns)
+                if (string.IsNullOrEmpty(line))
+                    continue;
+
+                var lineLow = line.ToLowerInvariant();
+                var columns = line.Split('\t');
+
+                if (columns.Length != columnsHeader)
                 {
                     UnityEngine.Debug.LogWarning(line);
                 }
@@ -95,6 +105,8 @@ namespace LP.Data
                     n++;
                 }
             }
+
+            UnityEngine.Debug.Log($"Remove lines: {lines.Length - newLines.Count}");
 
             lines = newLines.ToArray();
             bitMap = BitMap.Resize(bitMap, lines.Length);
@@ -113,6 +125,12 @@ namespace LP.Data
         {
             MarkRecordOk();
             _originalLines[_currentOriginalIndex] = line;
+        }
+
+        public void DeleteCurrentRecord()
+        {
+            _originalLines[_currentOriginalIndex] = string.Empty;
+            CleanAndPrepare();
         }
 
         public void MarkRecordOk()
