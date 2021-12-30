@@ -102,7 +102,7 @@ namespace LP.Data
 
                 if (columns.Length != columnsHeader)
                 {
-                    UnityEngine.Debug.LogWarning(line);
+                    UnityEngine.Debug.LogWarning($"lose column\n{line}");
                 }
 
                 Profiler.BeginSample("Contains");
@@ -114,6 +114,10 @@ namespace LP.Data
                     newBitMap[n] = bitMap[i];
                     n++;
                     Profiler.EndSample();
+                }
+                else
+                {
+                    UnityEngine.Debug.Log($"dublicate\n{line}");
                 }
                 Profiler.EndSample();
             }

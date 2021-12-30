@@ -23,6 +23,7 @@ namespace LP.UI
         {
             _buttonOk.onClick.AddListener(OnClickFinish);
             _buttonClose.onClick.AddListener(OnClickClose);
+            _inputField.onSubmit.AddListener(s => OnClickFinish());
         }
 
         public void Setup(AddressComponent component)
