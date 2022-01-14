@@ -30,6 +30,8 @@ namespace LP.UI
         [SerializeField] Button _buttonDump = default;
         [SerializeField] Button _buttonDumpReady = default;
 
+        [SerializeField] Toggle _useLongestRecord = default;
+
         [SerializeField] EditComponentWindow _editComponentWindow = default;
         [SerializeField] TextMeshProUGUI _counter = default;
 
@@ -87,20 +89,11 @@ namespace LP.UI
 
         private void OnDestroy()
         {
-            //if (dataReader != default)
-            //    dataReader.Dispose();
-
             // Teardown (only called once at the end of your program)
             libpostal.LibpostalTeardown();
             libpostal.LibpostalTeardownParser();
             libpostal.LibpostalTeardownLanguageClassifier();
         }
-
-        /*private void MarkTsvOk()
-        {
-            dataReader.MarkRecordOk();
-            SaveAddress();
-        }*/
 
         private void OnDeleteRecord()
         {
@@ -111,10 +104,6 @@ namespace LP.UI
 
         private void SaveAddress(AddressRecord record)
         {
-            //var row = string.Join("\t", tsvAddressView.Elements.Where(e => !e.IsEmpty).OrderBy(e => e.Group).Select(e => e.Value));
-
-            //var row = string.Join("\t", record.Elements.OrderBy(e => e.Group).Select(e => e.Value));
-            //if (string.IsNullOrEmpty(row))
             var elementsMap = record.Elements.ToLookup(e => e.Group);
             if (record.Elements.All(e => e.IsEmpty))
                 return;
@@ -139,7 +128,12 @@ namespace LP.UI
         private void ShowNextAddress(bool getNextAddr = true)
         {
             if (getNextAddr)
-                _currentLine = dataReader.GetNextRecordByLong();
+            {
+                if (_useLongestRecord.isOn)
+                    _currentLine = dataReader.GetNextRecordByLong();
+                else
+                    _currentLine = dataReader.GetNextRecord();
+            }
 
             var addressComponents = _currentLine
                 .Split(SPLIT_SEPATARE)
@@ -149,10 +143,9 @@ namespace LP.UI
 
             ShowLibpostalParse(_currentLine);
 
-            //outAddressView.Clear();
             outAddressView.Setup(tsvAddressView.Elements.Where(e => !e.IsEmpty));
 
-            _counter.text = $"Completed: {dataReader.CompletedLines}/{dataReader.TotalLines} ({(dataReader.CompletedLines / (float)dataReader.TotalLines).ToString("P4")})";
+            _counter.text = $"Completed: {dataReader.CompletedLines}/{dataReader.TotalLines} ({(dataReader.CompletedLines / (float)dataReader.TotalLines).ToString("P4")}) | {_currentLine.Length}";
         }
 
         private string _currentLine;
