@@ -28,6 +28,7 @@ namespace LP.UI
         [SerializeField] Button _buttonRefresh = default;
         [SerializeField] Button _buttonNext = default;
         [SerializeField] Button _buttonDump = default;
+        [SerializeField] Button _buttonDumpReady = default;
 
         [SerializeField] EditComponentWindow _editComponentWindow = default;
         [SerializeField] TextMeshProUGUI _counter = default;
@@ -48,6 +49,7 @@ namespace LP.UI
             _buttonNext.onClick.AddListener(OnNextAddress);
             _buttonDump.onClick.AddListener(DumpProgress);
             _buttonRefresh.onClick.AddListener(OnRefreshAddress);
+            _buttonDumpReady.onClick.AddListener(DumpReadyProgress);
 
             _trashDrop.OnDropAddressComponent += (component) => component.SetEmpty();
             _libpostalParseDrop.OnDropAddressComponent += (component) => ShowLibpostalParse(component.Element.Value);
@@ -150,7 +152,7 @@ namespace LP.UI
             //outAddressView.Clear();
             outAddressView.Setup(tsvAddressView.Elements.Where(e => !e.IsEmpty));
 
-            _counter.text = $"Completed: {dataReader.CompletedLines}/{dataReader.TotalLines} ({(dataReader.CompletedLines / dataReader.TotalLines).ToString("P2")})";
+            _counter.text = $"Completed: {dataReader.CompletedLines}/{dataReader.TotalLines} ({(dataReader.CompletedLines / (float)dataReader.TotalLines).ToString("P4")})";
         }
 
         private string _currentLine;
@@ -163,6 +165,13 @@ namespace LP.UI
         {
             dataReader.SaveTsvPreTrainData();
             Debug.Log("Saved");
+            _buttonDump.interactable = false;
+        }
+
+        private void DumpReadyProgress()
+        {
+            dataReader.SaveTsvOnlyCompletePreTrainData();
+            Debug.Log("Saved Ready");
             _buttonDump.interactable = false;
         }
 

@@ -11,10 +11,12 @@ namespace LP.Data
     internal class PreTrainDataReader
     {
         private const string PreTrainFileName = "license_separate_addresses.tsv";
+        private const string CompletePreTrainFileName = "license_separate_addresses_complete.tsv";
         private const string CompleteBitMapFileName = "btimap.dat";
 
         private readonly string _completeBitMapFilePath;
         private readonly string _preTrainDataFilePath;
+        private readonly string _completePreTrainDataFilePath;
 
         private StreamReader _reader;
         private BitMap _bitMap;
@@ -34,6 +36,7 @@ namespace LP.Data
         {
             _completeBitMapFilePath = Path.Combine(StorePath, CompleteBitMapFileName);
             _preTrainDataFilePath = Path.Combine(StorePath, PreTrainFileName);
+            _completePreTrainDataFilePath = Path.Combine(StorePath, CompletePreTrainFileName);
             _currentIndex = -1;
 
             ReadTsvPreTrainData();
@@ -57,8 +60,9 @@ namespace LP.Data
             {
                 _bitMap = new BitMap(_originalLines.Length);
             }
-
+            //TestRemoveDublicateMap();
             CleanAndPrepare();
+            //TestRemoveDublicateMap();
         }
 
         private void CleanAndPrepare()
@@ -124,7 +128,7 @@ namespace LP.Data
             int removeLines = lines.Length - newLines.Count;
 
             lines = newLines.ToArray();
-            bitMap = BitMap.Trim(bitMap, lines.Length);
+            bitMap = BitMap.Trim(newBitMap, lines.Length);
 
             Profiler.EndSample();
             UnityEngine.Debug.Log($"Remove lines: {removeLines}");
@@ -137,6 +141,21 @@ namespace LP.Data
             {
                 _bitMap.Save(fBitMap);
             }
+        }
+
+        public void SaveTsvOnlyCompletePreTrainData()
+        {
+            var completedLines = new List<string>(_originalLines.Length);
+            completedLines.Add(_originalLines[0]);  // header
+            for (int i = 1; i < _originalLines.Length; i++)
+            {
+                if (!_bitMap[i])
+                    continue;
+
+                completedLines.Add(_originalLines[i]);
+            }
+
+            File.WriteAllLines(_completePreTrainDataFilePath, completedLines);
         }
 
         public void SetRecord(string line)
@@ -190,6 +209,18 @@ namespace LP.Data
             }
 
             return string.Empty;
+        }
+
+        private void TestRemoveDublicateMap()
+        {
+            UnityEngine.Debug.Log($"VVVVVVV");
+            for (int i = 1; i < _originalLines.Length; i++)
+            {
+                if (!_bitMap[i])
+                    continue;
+
+                UnityEngine.Debug.Log($"Check: {i} => {_originalLines[i]}");
+            }
         }
     }
 }

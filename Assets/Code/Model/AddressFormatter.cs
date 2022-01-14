@@ -43,6 +43,7 @@ namespace LP.Model
             { "state_district", AddressFormatter.StateDisctrict },
             { "city",           AddressFormatter.City           },
             { "city_district",  AddressFormatter.CityDistrict   },
+            { "suburb",         AddressFormatter.CityDistrict   },
             { "road",           AddressFormatter.Road           },
             { "house_number",   AddressFormatter.HouseNumber    },
             { "unit",           AddressFormatter.Unit           },
