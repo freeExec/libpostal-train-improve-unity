@@ -32,6 +32,8 @@ namespace LP.UI
 
         [SerializeField] Toggle _useLongestRecord = default;
 
+        [SerializeField] GameObject _waiterView = default;
+
         [SerializeField] EditComponentWindow _editComponentWindow = default;
         [SerializeField] TextMeshProUGUI _counter = default;
 
@@ -40,9 +42,20 @@ namespace LP.UI
         private LibpostalAddressParserOptions parseOpt;
         private List<AddressFormatter> headerOrder;
 
-        void Start()
+        private ComponentsGroup _componentsGroup;
+        private string _currentLine;
+
+        private bool Waiting
         {
-            dataReader = new PreTrainDataReader(Application.streamingAssetsPath);
+            get { return _waiterView.activeSelf; }
+            set { _waiterView.SetActive(value); }
+        }
+
+
+        async void Start()
+        {
+            Waiting = true;
+            await System.Threading.Tasks.Task.Run(() => dataReader = new PreTrainDataReader(Application.streamingAssetsPath));
 
             headerOrder = HeaderToAddress(dataReader.Header);
             //var currentLine = dataReader.GetNextRecord();   // headers
@@ -62,8 +75,6 @@ namespace LP.UI
             bool b = libpostal.LibpostalSetupLanguageClassifierDatadir(dataPath);
             bool c = libpostal.LibpostalSetupParserDatadir(dataPath);
 
-            // Debug.Log(a && b && c);
-
             optExpand = libpostal.LibpostalGetDefaultOptions();
             optExpand.LatinAscii = false;
             optExpand.StripAccents = false;
@@ -80,11 +91,11 @@ namespace LP.UI
             optExpand.ReplaceWordHyphens = false;           // удалять дефисы
 
             //var expansion = libpostal.LibpostalExpandAddress(currentLine, optExpand);
-            //_label.text = expansion.Expansions[1];
 
             parseOpt = new LibpostalAddressParserOptions();
 
             ShowNextAddress();
+            Waiting = false;
         }
 
         private void OnDestroy()
@@ -95,11 +106,13 @@ namespace LP.UI
             libpostal.LibpostalTeardownLanguageClassifier();
         }
 
-        private void OnDeleteRecord()
+        private async void OnDeleteRecord()
         {
-            dataReader.DeleteCurrentRecord();
+            Waiting = true;
+            await System.Threading.Tasks.Task.Run(() => dataReader.DeleteCurrentRecord());
             ShowNextAddress();
             _buttonDump.interactable = true;
+            Waiting = false;
         }
 
         private void SaveAddress(AddressRecord record)
@@ -148,17 +161,18 @@ namespace LP.UI
             _counter.text = $"Completed: {dataReader.CompletedLines}/{dataReader.TotalLines} ({(dataReader.CompletedLines / (float)dataReader.TotalLines).ToString("P4")}) | {_currentLine.Length}";
         }
 
-        private string _currentLine;
         private void OnRefreshAddress()
         {
             ShowNextAddress(false);
         }
 
-        private void DumpProgress()
+        private async void DumpProgress()
         {
-            dataReader.SaveTsvPreTrainData();
+            Waiting = true;
+            await System.Threading.Tasks.Task.Run(() => dataReader.SaveTsvPreTrainData());
             Debug.Log("Saved");
             _buttonDump.interactable = false;
+            Waiting = false;
         }
 
         private void DumpReadyProgress()
@@ -184,7 +198,6 @@ namespace LP.UI
                 return libpostal;
             };
 
-
             var addressComponents = parse.Results
                 .Select(r => new ElementModel(
                     AddressFormatterHelper.GetFormatterFromLibpostal(r.Key),
@@ -195,7 +208,6 @@ namespace LP.UI
             postalAddressView.Setup(addressComponents);
         }
 
-        private ComponentsGroup _componentsGroup;
         private void OnEditComponentBegin(AddressComponent component)
         {
             _componentsGroup = component.Movable.FromComponentGroup;
