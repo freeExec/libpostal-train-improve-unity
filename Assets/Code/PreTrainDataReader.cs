@@ -8,11 +8,44 @@ using UnityEngine.Profiling;
 
 namespace LP.Data
 {
+    /*internal class KV<K, V>
+    {
+        public K Key;
+        public V Value;
+
+        public KV(K key, V value)
+        {
+            Key = key;
+            Value = value;
+        }
+    }*/
+
     internal class PreTrainDataReader
     {
+        private enum SortType
+        {
+            Default,
+            Longest,
+            StreetHouse,
+
+            Count
+        }
+
+        private class SortState<T>
+        {
+            public int CurrentIndex;
+            public List<KeyValuePair<T, int>> OrderLines;
+
+            public SortState(int capacity)
+            {
+                CurrentIndex = -1;
+                OrderLines = new List<KeyValuePair<T, int>>(capacity);
+            }
+        }
+
         private const string PreTrainFileName = "license_separate_addresses.tsv";
         private const string CompletePreTrainFileName = "license_separate_addresses_complete.tsv";
-        private const string CompleteBitMapFileName = "btimap.dat";
+        private const string CompleteBitMapFileName = "bitmap.dat";
 
         private readonly string _completeBitMapFilePath;
         private readonly string _preTrainDataFilePath;
@@ -21,12 +54,11 @@ namespace LP.Data
         private StreamReader _reader;
         private BitMap _bitMap;
 
-        private string[] _originalLines;
-        private int _currentIndex;
         private int _currentOriginalIndex;
+        private string[] _originalLines;
 
-
-        private List<KeyValuePair<int, int>> _orderByLongLines;
+        private SortState<int> _sortLongestStates;
+        private SortState<string> _sortAddrStates;
 
         public string Header => _originalLines[0];
         public int CompletedLines { get; private set; }
@@ -37,7 +69,7 @@ namespace LP.Data
             _completeBitMapFilePath = Path.Combine(StorePath, CompleteBitMapFileName);
             _preTrainDataFilePath = Path.Combine(StorePath, PreTrainFileName);
             _completePreTrainDataFilePath = Path.Combine(StorePath, CompletePreTrainFileName);
-            _currentIndex = -1;
+            //_currentIndex = -1;
 
             ReadTsvPreTrainData();
         }
@@ -60,6 +92,7 @@ namespace LP.Data
             {
                 _bitMap = new BitMap(_originalLines.Length);
             }
+                _bitMap[0] = true;  // header
             //TestRemoveDublicateMap();
             CleanAndPrepare();
             //TestRemoveDublicateMap();
@@ -75,12 +108,34 @@ namespace LP.Data
             Profiler.EndSample();
 
             Profiler.BeginSample("OrderByLongLines");
-            _orderByLongLines = new List<KeyValuePair<int, int>>();
+            _sortLongestStates = new SortState<int>(_originalLines.Length);
+            _sortAddrStates = new SortState<string>(_originalLines.Length);
+
+            int streetIndex = 5;
+            int houseIndex = 6;
+            char[] splitTab = new char[] { '\t' };
             for (int i = 0; i < _originalLines.Length; i++)
             {
-                _orderByLongLines.Add(new KeyValuePair<int, int>(_originalLines[i].Length, i));
+                _sortLongestStates.OrderLines.Add(new KeyValuePair<int, int>(_originalLines[i].Length, i));
+
+                int cp = -1;
+                int ci = 0;
+                int s = 0, e = 0;
+                do
+                {
+                    cp = _originalLines[i].IndexOf('\t', cp + 1);
+                    
+                    if (ci == streetIndex - 1)
+                        s = cp + 1;
+                    else if (ci == houseIndex)
+                        e = cp;
+
+                    ci++;
+                } while (cp != -1);
+                _sortAddrStates.OrderLines.Add(new KeyValuePair<string, int>(_originalLines[i].Substring(s, e - s), i));
             }
-            _orderByLongLines.Sort((t1, t2) => t2.Key.CompareTo(t1.Key));
+            _sortLongestStates.OrderLines.Sort((t1, t2) => t2.Key.CompareTo(t1.Key));
+            _sortAddrStates.OrderLines.Sort((t1, t2) => string.CompareOrdinal(t1.Key, t2.Key));
             Profiler.EndSample();
             Profiler.EndSample();
         }
@@ -102,12 +157,12 @@ namespace LP.Data
                     continue;
 
                 var lineLow = line.ToLowerInvariant();
-                var columns = line.Split('\t');
+                //var columns = line.Split('\t');
 
-                if (columns.Length != columnsHeader)
-                {
-                    UnityEngine.Debug.LogWarning($"lose column\n{line}");
-                }
+                //if (columns.Length != columnsHeader)
+                //{
+                //    UnityEngine.Debug.LogWarning($"lose column\n{line}");
+                //}
 
                 Profiler.BeginSample("Contains");
                 if (!hashSetLow.Contains(lineLow))
@@ -178,14 +233,13 @@ namespace LP.Data
 
         public string GetNextRecord()
         {
-            int index = _currentIndex;
+            int index = _currentOriginalIndex;
             while (index < _bitMap.Length)
             {
                 index++;
                 if (_bitMap[index])
                     continue;
 
-                _currentIndex = index;
                 _currentOriginalIndex = index;
                 return _originalLines[_currentOriginalIndex];
             }
@@ -195,15 +249,33 @@ namespace LP.Data
 
         public string GetNextRecordByLong()
         {
-            int index = _currentIndex;
+            int index = _sortLongestStates.CurrentIndex;
             while (index < _bitMap.Length)
             {
                 index++;
-                int originalIndex = _orderByLongLines[index].Value;
+                int originalIndex = _sortLongestStates.OrderLines[index].Value;
                 if (_bitMap[originalIndex])
                     continue;
 
-                _currentIndex = index;
+                _sortLongestStates.CurrentIndex = index;
+                _currentOriginalIndex = originalIndex;
+                return _originalLines[_currentOriginalIndex];
+            }
+
+            return string.Empty;
+        }
+
+        public string GetNextRecordBySortAddr()
+        {
+            int index = _sortAddrStates.CurrentIndex;
+            while (index < _bitMap.Length)
+            {
+                index++;
+                int originalIndex = _sortAddrStates.OrderLines[index].Value;
+                if (_bitMap[originalIndex])
+                    continue;
+
+                _sortAddrStates.CurrentIndex = index;
                 _currentOriginalIndex = originalIndex;
                 return _originalLines[_currentOriginalIndex];
             }

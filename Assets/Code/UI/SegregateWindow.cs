@@ -30,7 +30,9 @@ namespace LP.UI
         [SerializeField] Button _buttonDump = default;
         [SerializeField] Button _buttonDumpReady = default;
 
+        [SerializeField] Toggle _useNextRecord = default;
         [SerializeField] Toggle _useLongestRecord = default;
+        [SerializeField] Toggle _useSortAddrRecord = default;
 
         [SerializeField] GameObject _waiterView = default;
 
@@ -50,7 +52,6 @@ namespace LP.UI
             get { return _waiterView.activeSelf; }
             set { _waiterView.SetActive(value); }
         }
-
 
         async void Start()
         {
@@ -144,6 +145,8 @@ namespace LP.UI
             {
                 if (_useLongestRecord.isOn)
                     _currentLine = dataReader.GetNextRecordByLong();
+                if (_useSortAddrRecord.isOn)
+                    _currentLine = dataReader.GetNextRecordBySortAddr();
                 else
                     _currentLine = dataReader.GetNextRecord();
             }
