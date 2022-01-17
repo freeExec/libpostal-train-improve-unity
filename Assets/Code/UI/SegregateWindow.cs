@@ -145,7 +145,7 @@ namespace LP.UI
             {
                 if (_useLongestRecord.isOn)
                     _currentLine = dataReader.GetNextRecordByLong();
-                if (_useSortAddrRecord.isOn)
+                else if (_useSortAddrRecord.isOn)
                     _currentLine = dataReader.GetNextRecordBySortAddr();
                 else
                     _currentLine = dataReader.GetNextRecord();
