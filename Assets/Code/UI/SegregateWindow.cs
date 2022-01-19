@@ -29,6 +29,7 @@ namespace LP.UI
         [SerializeField] Button _buttonNext = default;
         [SerializeField] Button _buttonDump = default;
         [SerializeField] Button _buttonDumpReady = default;
+        [SerializeField] Button _buttonTestLibpostal = default;
 
         [SerializeField] Toggle _useNextRecord = default;
         [SerializeField] Toggle _useLongestRecord = default;
@@ -67,6 +68,7 @@ namespace LP.UI
             _buttonDump.onClick.AddListener(DumpProgress);
             _buttonRefresh.onClick.AddListener(OnRefreshAddress);
             _buttonDumpReady.onClick.AddListener(DumpReadyProgress);
+            _buttonTestLibpostal.onClick.AddListener(TestOutOnLibpostal);
 
             _trashDrop.OnDropAddressComponent += (component) => component.SetEmpty();
             _libpostalParseDrop.OnDropAddressComponent += (component) => ShowLibpostalParse(component.Element.Value);
@@ -164,7 +166,7 @@ namespace LP.UI
 
             outAddressView.Setup(tsvAddressView.Elements.Where(e => !e.IsEmpty));
 
-            _counter.text = $"Completed: {dataReader.CompletedLines}/{dataReader.TotalLines} ({(dataReader.CompletedLines / (float)dataReader.TotalLines).ToString("P4")}) | {_currentLine.Length}";
+            _counter.text = $"Completed: {dataReader.CompletedLines}/{dataReader.TotalLines} ({(dataReader.CompletedLines / (float)dataReader.TotalLines).ToString("P4")}) | {dataReader.CurrentLine} | {_currentLine.Length}";
         }
 
         private void OnRefreshAddress()
@@ -188,9 +190,17 @@ namespace LP.UI
             _buttonDump.interactable = false;
         }
 
+        private void TestOutOnLibpostal()
+        {
+            var elementsMap = outAddressView.Elements.ToLookup(e => e.Group);
+
+            var addrStr = string.Join(" ", headerOrder.Select(h => string.Join(" ", elementsMap[h].Select(e => e.Value))));
+            ShowLibpostalParse(addrStr);
+        }
+
         private void ShowLibpostalParse(string addrStr)
         {
-            var parse = libpostal.LibpostalParseAddress(addrStr, parseOpt);
+            var parse = libpostal.LibpostalParseAddress(addrStr.Trim(), parseOpt);
 
             var addrStrLow = addrStr.ToLowerInvariant().Replace('\t', ' ').Replace(',', ' ');
 

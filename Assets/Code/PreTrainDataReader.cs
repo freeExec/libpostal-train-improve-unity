@@ -63,6 +63,7 @@ namespace LP.Data
         public string Header => _originalLines[0];
         public int CompletedLines { get; private set; }
         public int TotalLines => _originalLines.Length;
+        public int CurrentLine => _currentOriginalIndex;
 
         public PreTrainDataReader(string StorePath)
         {
@@ -113,7 +114,7 @@ namespace LP.Data
 
             int streetIndex = 5;
             int houseIndex = 6;
-            char[] splitTab = new char[] { '\t' };
+            //char[] splitTab = new char[] { '\t' };
             for (int i = 0; i < _originalLines.Length; i++)
             {
                 _sortLongestStates.OrderLines.Add(new KeyValuePair<int, int>(_originalLines[i].Length, i));
