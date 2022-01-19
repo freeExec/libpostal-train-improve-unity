@@ -124,7 +124,7 @@ namespace LP.Data
                 do
                 {
                     cp = _originalLines[i].IndexOf('\t', cp + 1);
-                    
+
                     if (ci == streetIndex - 1)
                         s = cp + 1;
                     else if (ci == houseIndex)
@@ -192,7 +192,7 @@ namespace LP.Data
         public void SaveTsvPreTrainData()
         {
             File.WriteAllLines(_preTrainDataFilePath, _originalLines);
-            using (var fBitMap = new FileStream(_completeBitMapFilePath, FileMode.OpenOrCreate, FileAccess.Write))
+            using (var fBitMap = new FileStream(_completeBitMapFilePath, FileMode.Create, FileAccess.Write))
             {
                 _bitMap.Save(fBitMap);
             }
@@ -234,6 +234,21 @@ namespace LP.Data
         public string GetNextRecord()
         {
             int index = _currentOriginalIndex;
+            while (index < _bitMap.Length)
+            {
+                index++;
+                if (_bitMap[index])
+                    continue;
+
+                _currentOriginalIndex = index;
+                return _originalLines[_currentOriginalIndex];
+            }
+
+            return string.Empty;
+        }
+        public string GetNextRecordByRandom()
+        {
+            int index = UnityEngine.Random.Range(0, _originalLines.Length);
             while (index < _bitMap.Length)
             {
                 index++;

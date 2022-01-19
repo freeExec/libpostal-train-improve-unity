@@ -33,6 +33,7 @@ namespace LP.UI
         [SerializeField] Toggle _useNextRecord = default;
         [SerializeField] Toggle _useLongestRecord = default;
         [SerializeField] Toggle _useSortAddrRecord = default;
+        [SerializeField] Toggle _useRandomRecord = default;
 
         [SerializeField] GameObject _waiterView = default;
 
@@ -147,6 +148,8 @@ namespace LP.UI
                     _currentLine = dataReader.GetNextRecordByLong();
                 else if (_useSortAddrRecord.isOn)
                     _currentLine = dataReader.GetNextRecordBySortAddr();
+                else if (_useRandomRecord.isOn)
+                    _currentLine = dataReader.GetNextRecordByRandom();
                 else
                     _currentLine = dataReader.GetNextRecord();
             }

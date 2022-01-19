@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf426a54b24cc864ca13d192aceab538, type: 3}
+  m_Name: UiRecordParams
+  m_EditorClassIdentifier: 
+  Params:
+  - _adressFormatter: 0
+    _color: {r: 0.5529412, g: 0.77254903, b: 0.41960785, a: 1}
+    _widthColumn: 150
+  - _adressFormatter: 1
+    _color: {r: 0.77254903, g: 0.41960785, b: 0.69411767, a: 1}
+    _widthColumn: 220
+  - _adressFormatter: 2
+    _color: {r: 0.7490196, g: 0.77254903, b: 0.41960785, a: 1}
+    _widthColumn: 220
+  - _adressFormatter: 3
+    _color: {r: 0.41960785, g: 0.6745098, b: 0.77254903, a: 1}
+    _widthColumn: 220
+  - _adressFormatter: 4
+    _color: {r: 0.77254903, g: 0.6509804, b: 0.41960785, a: 1}
+    _widthColumn: 200
+  - _adressFormatter: 5
+    _color: {r: 0.46666667, g: 0.41960785, b: 0.77254903, a: 1}
+    _widthColumn: 220
+  - _adressFormatter: 6
+    _color: {r: 0.41960785, g: 0.77254903, b: 0.53333336, a: 1}
+    _widthColumn: 150
+  - _adressFormatter: 7
+    _color: {r: 0.77254903, g: 0.57254905, b: 0.41960785, a: 1}
+    _widthColumn: 150
+  - _adressFormatter: 8
+    _color: {r: 0.77254903, g: 0.41960785, b: 0.43137255, a: 1}
+    _widthColumn: 200

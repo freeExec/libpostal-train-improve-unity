@@ -14,6 +14,7 @@ namespace LP.UI
         [SerializeField] Transform _container = default;
         [SerializeField] Transform _dragZone = default;
         [SerializeField] AddressFormatter[] _addressColumns = default;
+        [SerializeField] UiRecordParams _recordParams = default;
 
         private Dictionary<AddressFormatter, ComponentsGroup> _groupsRecord;
 
@@ -25,12 +26,12 @@ namespace LP.UI
 
         private void Awake()
         {
-            //var groups = ((AddressFormatter[])Enum.GetValues(typeof(AddressFormatter))).Take(_groupColors.Length);
-
             _groupsRecord = CollectionInstantiator.Update<ComponentsGroup, AddressFormatter>( _container, _addressColumns,
                 (view, model) =>
             {
-                view.Setup(model, _groupColors[(int)model],  _dragZone);
+                var paramRecordType = _recordParams.Params[(int)model];
+                view.Setup(model, paramRecordType.Color,  _dragZone);
+                ((RectTransform)view.transform).SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, paramRecordType.WidthColumn);
             }).ToDictionary(r => r.Group);
         }
 

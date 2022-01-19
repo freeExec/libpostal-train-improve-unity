@@ -16,6 +16,7 @@ namespace LP.Model
         CityDistrict,
         Road,
         HouseNumber,
+        Level,
         Unit,
     }
 
@@ -31,6 +32,7 @@ namespace LP.Model
             { AddressFormatter.CityDistrict,    "suburb"        },
             { AddressFormatter.Road,            "street"        },
             { AddressFormatter.HouseNumber,     "house_number"  },
+            { AddressFormatter.Level,           "level"         },
             { AddressFormatter.Unit,            "unit"          },
         };
 
@@ -46,6 +48,7 @@ namespace LP.Model
             { "suburb",         AddressFormatter.CityDistrict   },
             { "road",           AddressFormatter.Road           },
             { "house_number",   AddressFormatter.HouseNumber    },
+            { "level",          AddressFormatter.Level          },
             { "unit",           AddressFormatter.Unit           },
         };
 
