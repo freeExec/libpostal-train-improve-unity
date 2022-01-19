@@ -30,6 +30,7 @@ namespace LP.UI
         [SerializeField] Button _buttonDump = default;
         [SerializeField] Button _buttonDumpReady = default;
         [SerializeField] Button _buttonTestLibpostal = default;
+        [SerializeField] Button _buttonInsertSpace = default;
 
         [SerializeField] Toggle _useNextRecord = default;
         [SerializeField] Toggle _useLongestRecord = default;
@@ -69,6 +70,7 @@ namespace LP.UI
             _buttonRefresh.onClick.AddListener(OnRefreshAddress);
             _buttonDumpReady.onClick.AddListener(DumpReadyProgress);
             _buttonTestLibpostal.onClick.AddListener(TestOutOnLibpostal);
+            _buttonInsertSpace.onClick.AddListener(OnInsertSpace);
 
             _trashDrop.OnDropAddressComponent += (component) => component.SetEmpty();
             _libpostalParseDrop.OnDropAddressComponent += (component) => ShowLibpostalParse(component.Element.Value);
@@ -238,6 +240,39 @@ namespace LP.UI
         {
             _editComponentWindow.OnEditFinish -= OnEditComponentFinish;
             _componentsGroup.ArriveComponent(element);
+        }
+
+        (AddressFormatter AddressFormatter, string[] Replaces)[] _replacesHelperToInserSpace = new (AddressFormatter AddressFormatter, string[] Replaces)[]
+        {
+                ( AddressFormatter.Road, new string[] { "ул." } ),
+                ( AddressFormatter.HouseNumber, new string[] { "д." } ),
+                ( AddressFormatter.HouseNumber, new string[] { "лит." } ),
+                ( AddressFormatter.Unit, new string[] { "пом." } ),
+        };
+
+        private void OnInsertSpace()
+        {
+            var elements = outAddressView.Elements.ToList();
+            
+            foreach (var tuple in _replacesHelperToInserSpace)
+            {
+                var fixElement = elements.FirstOrDefault(e => e.Group == tuple.AddressFormatter);
+                if (fixElement == null)
+                    continue;
+                foreach (var replace in tuple.Replaces)
+                {
+                    int pos = fixElement.Value.IndexOf(replace);
+                    int posToInsert = pos + replace.Length;
+                    if (pos != -1 && fixElement.Value[posToInsert] != ' ')
+                    {
+                        elements.Remove(fixElement);
+                        fixElement = new ElementModel(tuple.AddressFormatter, fixElement.Value.Insert(posToInsert, " "), ElementSource.ManualUserSeparate);
+                        elements.Add(fixElement);
+                    }
+                }
+            }
+
+            outAddressView.Setup(elements);
         }
 
         private static List<AddressFormatter> HeaderToAddress(string header)
