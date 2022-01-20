@@ -779,6 +779,7 @@ MonoBehaviour:
   _waiterView: {fileID: 1097940213}
   _editComponentWindow: {fileID: 563569108}
   _counter: {fileID: 449117433}
+  _warningNeedDump: {r: 0.7647059, g: 0.24313724, b: 0.29917756, a: 1}
 --- !u!1 &203525652
 GameObject:
   m_ObjectHideFlags: 0
@@ -1091,8 +1092,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 445, y: 474.7523}
-  m_SizeDelta: {x: 207.59497, y: 109.9373}
+  m_AnchoredPosition: {x: 445, y: 475}
+  m_SizeDelta: {x: 208, y: 110}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &278062736
 MonoBehaviour:

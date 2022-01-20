@@ -15,6 +15,7 @@ namespace LP.UI
     public class SegregateWindow : MonoBehaviour
     {
         private const char SPLIT_SEPATARE = '\t';
+        private const int WARNING_NEED_DUMP = 50;
 
         [SerializeField] AddressRecord tsvAddressView = default;
         [SerializeField] AddressRecord postalAddressView = default;
@@ -42,6 +43,8 @@ namespace LP.UI
         [SerializeField] EditComponentWindow _editComponentWindow = default;
         [SerializeField] TextMeshProUGUI _counter = default;
 
+        [SerializeField] Color _warningNeedDump = Color.red;
+
         private PreTrainDataReader dataReader;
         private LibpostalNormalizeOptions optExpand;
         private LibpostalAddressParserOptions parseOpt;
@@ -49,6 +52,9 @@ namespace LP.UI
 
         private ComponentsGroup _componentsGroup;
         private string _currentLine;
+
+        private int _proccessedCount = 0;
+        private Color _buttonDumpNormalColor;
 
         private bool Waiting
         {
@@ -75,6 +81,8 @@ namespace LP.UI
             _trashDrop.OnDropAddressComponent += (component) => component.SetEmpty();
             _libpostalParseDrop.OnDropAddressComponent += (component) => ShowLibpostalParse(component.Element.Value);
             _editComponentDrop.OnDropAddressComponent += OnEditComponentBegin;
+
+            _buttonDumpNormalColor = _buttonDump.colors.normalColor;
 
             var dataPath = Path.Combine(Application.streamingAssetsPath, "Libpostal");
             bool a = libpostal.LibpostalSetupDatadir(dataPath);
@@ -142,6 +150,14 @@ namespace LP.UI
             ShowNextAddress();
 
             _buttonDump.interactable = true;
+
+            if (_proccessedCount == WARNING_NEED_DUMP)
+            {
+                var cBlock = _buttonDump.colors;
+                cBlock.normalColor = _warningNeedDump;
+                _buttonDump.colors = cBlock;
+            }
+            _proccessedCount++;
         }
 
         private void ShowNextAddress(bool getNextAddr = true)
@@ -168,7 +184,7 @@ namespace LP.UI
 
             outAddressView.Setup(tsvAddressView.Elements.Where(e => !e.IsEmpty));
 
-            _counter.text = $"Completed: {dataReader.CompletedLines}/{dataReader.TotalLines} ({(dataReader.CompletedLines / (float)dataReader.TotalLines).ToString("P4")}) | {dataReader.CurrentLine} | {_currentLine.Length}";
+            _counter.text = $"Completed: {dataReader.CompletedLines}/{dataReader.TotalLines} ({dataReader.CompletedLines / (float)dataReader.TotalLines:P4}) | {dataReader.CurrentLine} | {_currentLine.Length}";
         }
 
         private void OnRefreshAddress()
@@ -183,6 +199,12 @@ namespace LP.UI
             Debug.Log("Saved");
             _buttonDump.interactable = false;
             Waiting = false;
+
+            var colors = _buttonDump.colors;
+            colors.normalColor = _buttonDumpNormalColor;
+            _buttonDump.colors = colors;
+
+            _proccessedCount = 0;
         }
 
         private void DumpReadyProgress()
@@ -242,18 +264,18 @@ namespace LP.UI
             _componentsGroup.ArriveComponent(element);
         }
 
-        (AddressFormatter AddressFormatter, string[] Replaces)[] _replacesHelperToInserSpace = new (AddressFormatter AddressFormatter, string[] Replaces)[]
+        (AddressFormatter AddressFormatter, string[] Replaces)[] _replacesHelperToInserSpace = new (AddressFormatter, string[])[]
         {
-                ( AddressFormatter.Road, new string[] { "ул." } ),
-                ( AddressFormatter.HouseNumber, new string[] { "д." } ),
-                ( AddressFormatter.HouseNumber, new string[] { "лит." } ),
-                ( AddressFormatter.Unit, new string[] { "пом." } ),
+                ( AddressFormatter.City,        new string[] { "п.", "г.", "д.", "с." } ),
+                ( AddressFormatter.Road,        new string[] { "ул.", "пр." } ),
+                ( AddressFormatter.HouseNumber, new string[] { "д.", "лит.", "стр." } ),
+                ( AddressFormatter.Unit,        new string[] { "пом.", "кв.", "оф." } ),
         };
 
         private void OnInsertSpace()
         {
             var elements = outAddressView.Elements.ToList();
-            
+
             foreach (var tuple in _replacesHelperToInserSpace)
             {
                 var fixElement = elements.FirstOrDefault(e => e.Group == tuple.AddressFormatter);
@@ -263,7 +285,7 @@ namespace LP.UI
                 {
                     int pos = fixElement.Value.IndexOf(replace);
                     int posToInsert = pos + replace.Length;
-                    if (pos != -1 && fixElement.Value[posToInsert] != ' ')
+                    if (pos != -1 && posToInsert < fixElement.Value.Length && fixElement.Value[posToInsert] != ' ')
                     {
                         elements.Remove(fixElement);
                         fixElement = new ElementModel(tuple.AddressFormatter, fixElement.Value.Insert(posToInsert, " "), ElementSource.ManualUserSeparate);
