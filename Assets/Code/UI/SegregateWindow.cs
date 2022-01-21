@@ -42,6 +42,7 @@ namespace LP.UI
 
         [SerializeField] EditComponentWindow _editComponentWindow = default;
         [SerializeField] TextMeshProUGUI _counter = default;
+        [SerializeField] TextMeshProUGUI _normAddr = default;
 
         [SerializeField] Color _warningNeedDump = Color.red;
 
@@ -89,6 +90,9 @@ namespace LP.UI
             bool b = libpostal.LibpostalSetupLanguageClassifierDatadir(dataPath);
             bool c = libpostal.LibpostalSetupParserDatadir(dataPath);
 
+            if (!a || !b || !c)
+                Debug.LogWarning("Libpostal Init FAIL!");
+
             optExpand = libpostal.LibpostalGetDefaultOptions();
             optExpand.LatinAscii = false;
             optExpand.StripAccents = false;
@@ -103,8 +107,6 @@ namespace LP.UI
 
             optExpand.SplitAlphaFromNumeric = false;        // раздвигать буквы от цифр (особо мешает в номере дома)
             optExpand.ReplaceWordHyphens = false;           // удалять дефисы
-
-            //var expansion = libpostal.LibpostalExpandAddress(currentLine, optExpand);
 
             parseOpt = new LibpostalAddressParserOptions();
 
@@ -224,18 +226,20 @@ namespace LP.UI
 
         private void ShowLibpostalParse(string addrStr)
         {
-            var parse = libpostal.LibpostalParseAddress(addrStr.Trim(), parseOpt);
+            var addrStrNoTab = addrStr.Replace('\t', ' ');
 
-            var addrStrLow = addrStr.ToLowerInvariant().Replace('\t', ' ').Replace(',', ' ');
+            var parse = libpostal.LibpostalParseAddress(addrStrNoTab.Trim(), parseOpt);
 
-            Func<string, string> recoveryCase = (libpostal) =>
+            var addrStrLow = addrStrNoTab.ToLowerInvariant().Replace(',', ' ');
+
+            Func<string, string> recoveryCase = (libpostalAnsver) =>
             {
-                int found = addrStrLow.IndexOf(libpostal);
+                int found = addrStrLow.IndexOf(libpostalAnsver);
                 if (found != -1)
                 {
-                    return addrStr.Substring(found, libpostal.Length);
+                    return addrStr.Substring(found, libpostalAnsver.Length);
                 }
-                return libpostal;
+                return libpostalAnsver;
             };
 
             var addressComponents = parse.Results
@@ -246,6 +250,9 @@ namespace LP.UI
                 ));
 
             postalAddressView.Setup(addressComponents);
+
+            var extendAddr = libpostal.LibpostalExpandAddress(addrStrNoTab, optExpand);
+            _normAddr.text = extendAddr.Expansions[0];
         }
 
         private void OnEditComponentBegin(AddressComponent component)
