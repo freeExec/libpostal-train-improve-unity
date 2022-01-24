@@ -43,8 +43,10 @@ namespace LP.UI
         [SerializeField] EditComponentWindow _editComponentWindow = default;
         [SerializeField] TextMeshProUGUI _counter = default;
         [SerializeField] TextMeshProUGUI _normAddr = default;
+        [SerializeField] TextMeshProUGUI _lastNormAddr = default;
 
-        [SerializeField] Color _warningNeedDump = Color.red;
+        [Header("Colours")]
+        [SerializeField] Color _warningColor = Color.red;
 
         private PreTrainDataReader dataReader;
         private LibpostalNormalizeOptions optExpand;
@@ -56,6 +58,7 @@ namespace LP.UI
 
         private int _proccessedCount = 0;
         private Color _buttonDumpNormalColor;
+        private Color _buttonDeleteNormalColor;
 
         private bool Waiting
         {
@@ -84,6 +87,7 @@ namespace LP.UI
             _editComponentDrop.OnDropAddressComponent += OnEditComponentBegin;
 
             _buttonDumpNormalColor = _buttonDump.colors.normalColor;
+            _buttonDeleteNormalColor = _buttonDelete.colors.normalColor;
 
             var dataPath = Path.Combine(Application.streamingAssetsPath, "Libpostal");
             bool a = libpostal.LibpostalSetupDatadir(dataPath);
@@ -155,9 +159,7 @@ namespace LP.UI
 
             if (_proccessedCount == WARNING_NEED_DUMP)
             {
-                var cBlock = _buttonDump.colors;
-                cBlock.normalColor = _warningNeedDump;
-                _buttonDump.colors = cBlock;
+                ReplaceButtonNormalColor(_buttonDump, _warningColor);
             }
             _proccessedCount++;
         }
@@ -202,9 +204,7 @@ namespace LP.UI
             _buttonDump.interactable = false;
             Waiting = false;
 
-            var colors = _buttonDump.colors;
-            colors.normalColor = _buttonDumpNormalColor;
-            _buttonDump.colors = colors;
+            ReplaceButtonNormalColor(_buttonDump, _buttonDumpNormalColor);
 
             _proccessedCount = 0;
         }
@@ -251,8 +251,12 @@ namespace LP.UI
 
             postalAddressView.Setup(addressComponents);
 
+            _lastNormAddr.text = _normAddr.text;
             var extendAddr = libpostal.LibpostalExpandAddress(addrStrNoTab, optExpand);
             _normAddr.text = extendAddr.Expansions[0];
+
+            var levensh = EditDistance.DamerauLevenshteinDistance(_lastNormAddr.text, _normAddr.text, 3);
+            ReplaceButtonNormalColor(_buttonDelete, (levensh >= 0) ? _warningColor : _buttonDeleteNormalColor);
         }
 
         private void OnEditComponentBegin(AddressComponent component)
@@ -273,9 +277,9 @@ namespace LP.UI
 
         (AddressFormatter AddressFormatter, string[] Replaces)[] _replacesHelperToInserSpace = new (AddressFormatter, string[])[]
         {
-                ( AddressFormatter.City,        new string[] { "п.", "г.", "д.", "с." } ),
-                ( AddressFormatter.Road,        new string[] { "ул.", "пр." } ),
-                ( AddressFormatter.HouseNumber, new string[] { "д.", "лит.", "стр." } ),
+                ( AddressFormatter.City,        new string[] { "п.", "г.", "д.", "с.", "пос." } ),
+                ( AddressFormatter.Road,        new string[] { "ул.", "пр.", "пер." } ),
+                ( AddressFormatter.HouseNumber, new string[] { "д.", "лит.", "стр.", "кор.", "корп." } ),
                 ( AddressFormatter.Unit,        new string[] { "пом.", "кв.", "оф." } ),
         };
 
@@ -310,6 +314,13 @@ namespace LP.UI
             var helperReverce = Enum.GetValues(typeof(AddressFormatter)).Cast<AddressFormatter>().ToDictionary(af => af.ToTsvString());
             var h2a = header.Split('\t').Select(c => helperReverce[c]).ToList();
             return h2a;
+        }
+
+        private static void ReplaceButtonNormalColor(Button button, Color color)
+        {
+            var colors = button.colors;
+            colors.normalColor = color;
+            button.colors = colors;
         }
     }
 }
