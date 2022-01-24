@@ -783,7 +783,7 @@ MonoBehaviour:
   _counter: {fileID: 449117433}
   _normAddr: {fileID: 1789677152}
   _lastNormAddr: {fileID: 1261146683}
-  _warningColor: {r: 0.6698113, g: 0.21800463, b: 0.21800463, a: 1}
+  _warningColor: {r: 1, g: 0, b: 0, a: 1}
 --- !u!1 &203525652
 GameObject:
   m_ObjectHideFlags: 0
@@ -3396,7 +3396,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8464892031849765644, guid: d68ff6778f6608948b59b564b9c93b56, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 110
       objectReference: {fileID: 0}
     - target: {fileID: 8464892031979965939, guid: d68ff6778f6608948b59b564b9c93b56, type: 3}
       propertyPath: m_AnchorMax.y
@@ -4689,7 +4689,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8464892031849765644, guid: d68ff6778f6608948b59b564b9c93b56, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 110
       objectReference: {fileID: 0}
     - target: {fileID: 8464892031979965939, guid: d68ff6778f6608948b59b564b9c93b56, type: 3}
       propertyPath: m_AnchorMax.y
@@ -7548,7 +7548,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8464892031849765644, guid: d68ff6778f6608948b59b564b9c93b56, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 110
       objectReference: {fileID: 0}
     - target: {fileID: 8464892031979965939, guid: d68ff6778f6608948b59b564b9c93b56, type: 3}
       propertyPath: m_AnchorMax.y

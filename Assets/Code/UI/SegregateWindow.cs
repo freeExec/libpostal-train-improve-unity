@@ -130,6 +130,7 @@ namespace LP.UI
         {
             Waiting = true;
             await System.Threading.Tasks.Task.Run(() => dataReader.DeleteCurrentRecord());
+
             ShowNextAddress();
             _buttonDump.interactable = true;
             Waiting = false;
@@ -153,6 +154,7 @@ namespace LP.UI
             else
                 SaveAddress(tsvAddressView);
 
+            _lastNormAddr.text = _normAddr.text;
             ShowNextAddress();
 
             _buttonDump.interactable = true;
@@ -251,7 +253,6 @@ namespace LP.UI
 
             postalAddressView.Setup(addressComponents);
 
-            _lastNormAddr.text = _normAddr.text;
             var extendAddr = libpostal.LibpostalExpandAddress(addrStrNoTab, optExpand);
             _normAddr.text = extendAddr.Expansions[0];
 
