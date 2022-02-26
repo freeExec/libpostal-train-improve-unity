@@ -243,10 +243,10 @@ namespace LP.UI
             var elementsMap = outAddressView.Elements.ToLookup(e => e.Group);
 
             var addrStr = string.Join(" ", headerOrder.Select(h => string.Join(" ", elementsMap[h].Select(e => e.Value))));
-            ShowLibpostalParse(addrStr);
+            ShowLibpostalParse(addrStr, false);
         }
 
-        private void ShowLibpostalParse(string addrStr)
+        private void ShowLibpostalParse(string addrStr, bool applyNormAddr = true)
         {
             var addrStrNoTab = addrStr.Replace('\t', ' ');
 
@@ -273,12 +273,16 @@ namespace LP.UI
 
             postalAddressView.Setup(addressComponents);
 
-            _lastNormAddr.text = _normAddr.text;
+            if (applyNormAddr)
+            {
+                _lastNormAddr.text = _normAddr.text;
+            }
+
             var extendAddr = libpostal.LibpostalExpandAddress(addrStrNoTab, optExpand);
             _normAddr.text = extendAddr.Expansions[0];
 
             var levensh = EditDistance.DamerauLevenshteinDistance(_lastNormAddr.text, _normAddr.text, 3);
-            ReplaceButtonNormalColor(_buttonDelete, (levensh >= 0) ? _warningColor : _buttonDeleteNormalColor);
+            ReplaceButtonNormalColor(_buttonDelete, (levensh >= 0) ? _warningColor : _buttonDeleteNormalColor);            
         }
 
         private void OnEditComponentBegin(AddressComponent component)
