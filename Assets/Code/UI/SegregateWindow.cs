@@ -45,6 +45,8 @@ namespace LP.UI
         [SerializeField] TextMeshProUGUI _normAddr = default;
         [SerializeField] TextMeshProUGUI _lastNormAddr = default;
 
+        [SerializeField] MessageWindow _messageWindow = default;
+
         [Header("Colours")]
         [SerializeField] Color _warningColor = Color.red;
 
@@ -60,6 +62,8 @@ namespace LP.UI
         private Color _buttonDumpNormalColor;
         private Color _buttonDeleteNormalColor;
 
+        private string _validateDataPath;
+
         private bool Waiting
         {
             get { return _waiterView.activeSelf; }
@@ -68,8 +72,23 @@ namespace LP.UI
 
         async void Start()
         {
+#if UNITY_EDITOR
+            _validateDataPath = Application.dataPath + "\\..\\Data";
+#else
+            var args = Environment.GetCommandLineArgs();
+            if (args.Length < 2)
+            {
+                _messageWindow.Setup("Set Data DIR. Exit!");
+                _messageWindow.gameObject.SetActive(true);
+
+                return;
+            }
+
+            _validateDataPath = args[1];
+#endif
+
             Waiting = true;
-            await System.Threading.Tasks.Task.Run(() => dataReader = new PreTrainDataReader(Application.streamingAssetsPath));
+            await System.Threading.Tasks.Task.Run(() => dataReader = new PreTrainDataReader(_validateDataPath));
 
             headerOrder = HeaderToAddress(dataReader.Header);
             //var currentLine = dataReader.GetNextRecord();   // headers
@@ -95,7 +114,10 @@ namespace LP.UI
             bool c = libpostal.LibpostalSetupParserDatadir(dataPath);
 
             if (!a || !b || !c)
-                Debug.LogWarning("Libpostal Init FAIL!");
+            {
+                _messageWindow.Setup("Libpostal Init FAIL!");
+                _messageWindow.gameObject.SetActive(true);
+            }
 
             optExpand = libpostal.LibpostalGetDefaultOptions();
             optExpand.LatinAscii = false;
@@ -130,7 +152,6 @@ namespace LP.UI
         {
             Waiting = true;
             await System.Threading.Tasks.Task.Run(() => dataReader.DeleteCurrentRecord());
-
             ShowNextAddress();
             _buttonDump.interactable = true;
             Waiting = false;
@@ -154,7 +175,6 @@ namespace LP.UI
             else
                 SaveAddress(tsvAddressView);
 
-            _lastNormAddr.text = _normAddr.text;
             ShowNextAddress();
 
             _buttonDump.interactable = true;
@@ -253,6 +273,7 @@ namespace LP.UI
 
             postalAddressView.Setup(addressComponents);
 
+            _lastNormAddr.text = _normAddr.text;
             var extendAddr = libpostal.LibpostalExpandAddress(addrStrNoTab, optExpand);
             _normAddr.text = extendAddr.Expansions[0];
 
