@@ -67,6 +67,14 @@ namespace LP.UI
 
         private string _validateDataPath;
 
+        (AddressFormatter AddressFormatter, string[] Replaces)[] _replacesHelperToInserSpace = new (AddressFormatter, string[])[]
+        {
+                ( AddressFormatter.City,        new string[] { "п.", "г.", "д.", "с.", "пос." } ),
+                ( AddressFormatter.Road,        new string[] { "ул.", "пр.", "пер." } ),
+                ( AddressFormatter.HouseNumber, new string[] { "д.", "лит.", "стр.", "кор.", "корп.", "вл." } ),
+                ( AddressFormatter.Unit,        new string[] { "пом.", "кв.", "оф." } ),
+        };
+
         private bool Waiting
         {
             get { return _waiterView.activeSelf; }
@@ -105,7 +113,7 @@ namespace LP.UI
             _buttonInsertSpace.onClick.AddListener(OnInsertSpace);
 
             _trashDrop.OnDropAddressComponent += (component) => component.SetEmpty();
-            _libpostalParseDrop.OnDropAddressComponent += (component) => ShowLibpostalParse(component.Element.Value);
+            _libpostalParseDrop.OnDropAddressComponent += (component) => ShowLibpostalParse(component.Element.Value, false);
             _editComponentDrop.OnDropAddressComponent += OnEditComponentBegin;
 
             _buttonDumpNormalColor = _buttonDump.colors.normalColor;
@@ -343,14 +351,6 @@ namespace LP.UI
             _editComponentWindow.OnEditFinish -= OnEditComponentFinish;
             _componentsGroup.ArriveComponent(element);
         }
-
-        (AddressFormatter AddressFormatter, string[] Replaces)[] _replacesHelperToInserSpace = new (AddressFormatter, string[])[]
-        {
-                ( AddressFormatter.City,        new string[] { "п.", "г.", "д.", "с.", "пос." } ),
-                ( AddressFormatter.Road,        new string[] { "ул.", "пр.", "пер." } ),
-                ( AddressFormatter.HouseNumber, new string[] { "д.", "лит.", "стр.", "кор.", "корп." } ),
-                ( AddressFormatter.Unit,        new string[] { "пом.", "кв.", "оф." } ),
-        };
 
         private void OnInsertSpace()
         {
