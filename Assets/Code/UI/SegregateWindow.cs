@@ -38,6 +38,9 @@ namespace LP.UI
         [SerializeField] Toggle _useSortAddrRecord = default;
         [SerializeField] Toggle _useRandomRecord = default;
 
+        [SerializeField] Toggle _useNextMathRecord = default;
+        [SerializeField] Toggle _useNextDifferentRecord = default;
+
         [SerializeField] GameObject _waiterView = default;
 
         [SerializeField] EditComponentWindow _editComponentWindow = default;
@@ -188,6 +191,16 @@ namespace LP.UI
 
         private void ShowNextAddress(bool getNextAddr = true)
         {
+            Func<string, IEnumerable<ElementModel>> parseComponents = (addrString) =>
+            {
+                var addressComponents = addrString
+                    .Split(SPLIT_SEPATARE)
+                    .Zip(tsvAddressView.AddressColumns, (value, address) =>
+                        new ElementModel(address, value, ElementSource.PreparePythonScript));
+
+                return addressComponents;
+            };
+
             if (getNextAddr)
             {
                 if (_useLongestRecord.isOn)
@@ -196,14 +209,36 @@ namespace LP.UI
                     _currentLine = dataReader.GetNextRecordBySortAddr();
                 else if (_useRandomRecord.isOn)
                     _currentLine = dataReader.GetNextRecordByRandom();
+                else if (_useNextMathRecord.isOn)
+                {
+                    bool isMath = false;
+                    var comparer = new ElementModelMatchComparer();
+                    do
+                    {
+                        _currentLine = dataReader.GetNextRecord();
+                        var trueComponents = parseComponents(_currentLine);
+                        var libpostalComponents = ParseLibpostal(_currentLine);
+
+                        isMath = trueComponents.Where(c => !c.IsEmpty).SequenceEqual(libpostalComponents, comparer);
+                    } while (!isMath);
+                }
+                else if (_useNextDifferentRecord.isOn)
+                {
+                    bool isMath = false;
+                    var comparer = new ElementModelMatchComparer();
+                    do
+                    {
+                        _currentLine = dataReader.GetNextRecord();
+                        var trueComponents = parseComponents(_currentLine);
+                        var libpostalComponents = ParseLibpostal(_currentLine);
+                        isMath = trueComponents.Where(c => !c.IsEmpty).SequenceEqual(libpostalComponents, comparer);
+                    } while (isMath);
+                }
                 else
                     _currentLine = dataReader.GetNextRecord();
             }
 
-            var addressComponents = _currentLine
-                .Split(SPLIT_SEPATARE)
-                .Zip(tsvAddressView.AddressColumns, (value, address) =>
-                    new ElementModel(address, value, ElementSource.PreparePythonScript));
+            var addressComponents = parseComponents(_currentLine);
             tsvAddressView.Setup(addressComponents);
 
             ShowLibpostalParse(_currentLine);
@@ -246,7 +281,7 @@ namespace LP.UI
             ShowLibpostalParse(addrStr, false);
         }
 
-        private void ShowLibpostalParse(string addrStr, bool applyNormAddr = true)
+        private IEnumerable<ElementModel> ParseLibpostal(string addrStr)
         {
             var addrStrNoTab = addrStr.Replace('\t', ' ');
 
@@ -271,6 +306,14 @@ namespace LP.UI
                     ElementSource.Libpostal
                 ));
 
+            return addressComponents;
+        }
+
+        private void ShowLibpostalParse(string addrStr, bool applyNormAddr = true)
+        {
+            var addrStrNoTab = addrStr.Replace('\t', ' ');
+            var addressComponents = ParseLibpostal(addrStrNoTab);
+
             postalAddressView.Setup(addressComponents);
 
             if (applyNormAddr)
@@ -282,7 +325,7 @@ namespace LP.UI
             _normAddr.text = extendAddr.Expansions[0];
 
             var levensh = EditDistance.DamerauLevenshteinDistance(_lastNormAddr.text, _normAddr.text, 3);
-            ReplaceButtonNormalColor(_buttonDelete, (levensh >= 0) ? _warningColor : _buttonDeleteNormalColor);            
+            ReplaceButtonNormalColor(_buttonDelete, (levensh >= 0) ? _warningColor : _buttonDeleteNormalColor);
         }
 
         private void OnEditComponentBegin(AddressComponent component)

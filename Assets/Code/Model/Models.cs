@@ -43,4 +43,17 @@ namespace LP.Model
             return IsEmpty ? "<Empty>" : $"{Group}:{Value}";
         }
     }
+
+    public class ElementModelMatchComparer : IEqualityComparer<ElementModel>
+    {
+        public bool Equals(ElementModel x, ElementModel y)
+        {
+            return x.Group == y.Group && x.Value == y.Value;
+        }
+
+        public int GetHashCode(ElementModel obj)
+        {
+            return obj.Group.GetHashCode() ^ obj.Value.GetHashCode() ^ obj.Source.GetHashCode();
+        }
+    }
 }
