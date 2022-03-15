@@ -332,7 +332,7 @@ namespace LP.UI
             var extendAddr = libpostal.LibpostalExpandAddress(addrStrNoTab, optExpand);
             _normAddr.text = extendAddr.Expansions[0];
 
-            var levensh = EditDistance.DamerauLevenshteinDistance(_lastNormAddr.text, _normAddr.text, 3);
+            var levensh = EditDistance.DamerauLevenshteinDistance(_lastNormAddr.text, _normAddr.text, 8);
             ReplaceButtonNormalColor(_buttonDelete, (levensh >= 0) ? _warningColor : _buttonDeleteNormalColor);
         }
 
