@@ -60,6 +60,8 @@ namespace LP.Data
         private SortState<int> _sortLongestStates;
         private SortState<string> _sortAddrStates;
 
+        private bool _hasDeletedRecord;
+
         public string Header => _originalLines[0];
         public int CompletedLines { get; private set; }
         public int TotalLines => _originalLines.Length;
@@ -138,6 +140,7 @@ namespace LP.Data
             _sortLongestStates.OrderLines.Sort((t1, t2) => t2.Key.CompareTo(t1.Key));
             _sortAddrStates.OrderLines.Sort((t1, t2) => string.CompareOrdinal(t1.Key, t2.Key));
             Profiler.EndSample();
+            _hasDeletedRecord = false;
             Profiler.EndSample();
         }
 
@@ -145,7 +148,7 @@ namespace LP.Data
         {
             Profiler.BeginSample("RemoveDublicate");
             var newLines = new List<string>(lines.Length);
-            var hashSetLow = new HashSet<string>(/*lines.Length*/);
+            var hashSetLow = new Dictionary<string, object>(lines.Length);
             var newBitMap = new BitMap(bitMap.Length);
 
             int columnsHeader = lines[0].Split('\t').Length;
@@ -166,11 +169,11 @@ namespace LP.Data
                 //}
 
                 Profiler.BeginSample("Contains");
-                if (!hashSetLow.Contains(lineLow))
+                if (!hashSetLow.ContainsKey(lineLow))
                 {
                     Profiler.BeginSample("Add");
                     newLines.Add(line);
-                    hashSetLow.Add(lineLow);
+                    hashSetLow.Add(lineLow, null);
                     newBitMap[n] = bitMap[i];
                     n++;
                     Profiler.EndSample();
@@ -192,6 +195,8 @@ namespace LP.Data
 
         public void SaveTsvPreTrainData()
         {
+            if (_hasDeletedRecord)
+                CleanAndPrepare();
             File.WriteAllLines(_preTrainDataFilePath, _originalLines);
             using (var fBitMap = new FileStream(_completeBitMapFilePath, FileMode.Create, FileAccess.Write))
             {
@@ -223,7 +228,8 @@ namespace LP.Data
         public void DeleteCurrentRecord()
         {
             _originalLines[_currentOriginalIndex] = string.Empty;
-            CleanAndPrepare();
+            //CleanAndPrepare();
+            _hasDeletedRecord = true;
         }
 
         public void MarkRecordOk()

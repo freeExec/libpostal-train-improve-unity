@@ -69,10 +69,11 @@ namespace LP.UI
 
         (AddressFormatter AddressFormatter, string[] Replaces)[] _replacesHelperToInserSpace = new (AddressFormatter, string[])[]
         {
-                ( AddressFormatter.City,        new string[] { "п.", "г.", "д.", "с.", "пос." } ),
-                ( AddressFormatter.Road,        new string[] { "ул.", "пр.", "пер." } ),
-                ( AddressFormatter.HouseNumber, new string[] { "д.", "лит.", "стр.", "кор.", "корп.", "вл." } ),
-                ( AddressFormatter.Unit,        new string[] { "пом.", "кв.", "оф." } ),
+                ( AddressFormatter.City,         new string[] { "п.", "г.", "д.", "с.", "пос." } ),
+                ( AddressFormatter.Road,         new string[] { "ул.", "пр.", "пер." } ),
+                ( AddressFormatter.CityDistrict, new string[] { "мкр." } ),
+                ( AddressFormatter.HouseNumber,  new string[] { "д.", "лит.", "стр.", "кор.", "корп.", "вл." } ),
+                ( AddressFormatter.Unit,         new string[] { "пом.", "кв.", "оф." } ),
         };
 
         private bool Waiting
@@ -110,7 +111,7 @@ namespace LP.UI
             _buttonRefresh.onClick.AddListener(OnRefreshAddress);
             _buttonDumpReady.onClick.AddListener(DumpReadyProgress);
             _buttonTestLibpostal.onClick.AddListener(TestOutOnLibpostal);
-            _buttonInsertSpace.onClick.AddListener(OnInsertSpace);
+            _buttonInsertSpace.onClick.AddListener(OnInsertSpaceAndTrim);
 
             _trashDrop.OnDropAddressComponent += (component) => component.SetEmpty();
             _libpostalParseDrop.OnDropAddressComponent += (component) => ShowLibpostalParse(component.Element.Value, false);
@@ -162,7 +163,8 @@ namespace LP.UI
         private async void OnDeleteRecord()
         {
             Waiting = true;
-            await System.Threading.Tasks.Task.Run(() => dataReader.DeleteCurrentRecord());
+            //await System.Threading.Tasks.Task.Run(() => dataReader.DeleteCurrentRecord());
+            dataReader.DeleteCurrentRecord();
             ShowNextAddress();
             _buttonDump.interactable = true;
             Waiting = false;
@@ -352,7 +354,7 @@ namespace LP.UI
             _componentsGroup.ArriveComponent(element);
         }
 
-        private void OnInsertSpace()
+        private void OnInsertSpaceAndTrim()
         {
             var elements = outAddressView.Elements.ToList();
 
@@ -363,13 +365,21 @@ namespace LP.UI
                     continue;
                 foreach (var replace in tuple.Replaces)
                 {
-                    int pos = fixElement.Value.IndexOf(replace);
+                    int originalLength = fixElement.Value.Length;
+                    string elementValue = fixElement.Value.TrimEnd('.', ' ');
+                    bool isModify = originalLength > elementValue.Length;
+                    int pos = elementValue.IndexOf(replace);
                     int posToInsert = pos + replace.Length;
-                    if (pos != -1 && posToInsert < fixElement.Value.Length && fixElement.Value[posToInsert] != ' ')
+                    if (pos != -1 && posToInsert < elementValue.Length && elementValue[posToInsert] != ' ')
                     {
-                        elements.Remove(fixElement);
-                        fixElement = new ElementModel(tuple.AddressFormatter, fixElement.Value.Insert(posToInsert, " "), ElementSource.ManualUserSeparate);
-                        elements.Add(fixElement);
+                        elementValue = elementValue.Insert(posToInsert, " ");
+                        isModify = true;
+                    }
+                    if (isModify)
+                    {
+                        int index = elements.IndexOf(fixElement);
+                        fixElement = new ElementModel(tuple.AddressFormatter, elementValue, ElementSource.ManualUserSeparate);
+                        elements[index] = fixElement;
                     }
                 }
             }
