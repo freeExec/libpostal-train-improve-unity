@@ -148,7 +148,8 @@ namespace LP.UI
 
             parseOpt = new LibpostalAddressParserOptions();
 
-            ShowNextAddress();
+            SetNextAddress(tsvAddressView);
+            ShowCurrentAddress();
             Waiting = false;
         }
 
@@ -165,7 +166,8 @@ namespace LP.UI
             Waiting = true;
             //await System.Threading.Tasks.Task.Run(() => dataReader.DeleteCurrentRecord());
             dataReader.DeleteCurrentRecord();
-            ShowNextAddress();
+            SetNextAddress(tsvAddressView);
+            ShowCurrentAddress();
             _buttonDump.interactable = true;
             Waiting = false;
         }
@@ -188,7 +190,8 @@ namespace LP.UI
             else
                 SaveAddress(tsvAddressView);
 
-            ShowNextAddress();
+            SetNextAddress(tsvAddressView);
+            ShowCurrentAddress();
 
             _buttonDump.interactable = true;
 
@@ -199,56 +202,52 @@ namespace LP.UI
             _proccessedCount++;
         }
 
-        private void ShowNextAddress(bool getNextAddr = true)
+        private void SetNextAddress(AddressRecord addressView)
         {
-            Func<string, IEnumerable<ElementModel>> parseComponents = (addrString) =>
+            if (_useLongestRecord.isOn)
+                _currentLine = dataReader.GetNextRecordByLong();
+            else if (_useSortAddrRecord.isOn)
+                _currentLine = dataReader.GetNextRecordBySortAddr();
+            else if (_useRandomRecord.isOn)
+                _currentLine = dataReader.GetNextRecordByRandom();
+            else if (_useNextMathRecord.isOn)
             {
-                var addressComponents = addrString
-                    .Split(SPLIT_SEPATARE)
-                    .Zip(tsvAddressView.AddressColumns, (value, address) =>
-                        new ElementModel(address, value, ElementSource.PreparePythonScript));
-
-                return addressComponents;
-            };
-
-            if (getNextAddr)
-            {
-                if (_useLongestRecord.isOn)
-                    _currentLine = dataReader.GetNextRecordByLong();
-                else if (_useSortAddrRecord.isOn)
-                    _currentLine = dataReader.GetNextRecordBySortAddr();
-                else if (_useRandomRecord.isOn)
-                    _currentLine = dataReader.GetNextRecordByRandom();
-                else if (_useNextMathRecord.isOn)
+                bool isMath = false;
+                var comparer = new ElementModelMatchComparer();
+                do
                 {
-                    bool isMath = false;
-                    var comparer = new ElementModelMatchComparer();
-                    do
-                    {
-                        _currentLine = dataReader.GetNextRecord();
-                        var trueComponents = parseComponents(_currentLine);
-                        var libpostalComponents = ParseLibpostal(_currentLine);
-
-                        isMath = trueComponents.Where(c => !c.IsEmpty).SequenceEqual(libpostalComponents, comparer);
-                    } while (!isMath);
-                }
-                else if (_useNextDifferentRecord.isOn)
-                {
-                    bool isMath = false;
-                    var comparer = new ElementModelMatchComparer();
-                    do
-                    {
-                        _currentLine = dataReader.GetNextRecord();
-                        var trueComponents = parseComponents(_currentLine);
-                        var libpostalComponents = ParseLibpostal(_currentLine);
-                        isMath = trueComponents.Where(c => !c.IsEmpty).SequenceEqual(libpostalComponents, comparer);
-                    } while (isMath);
-                }
-                else
                     _currentLine = dataReader.GetNextRecord();
-            }
+                    var trueComponents = FillComponents(_currentLine, addressView.AddressColumns);
+                    var libpostalComponents = ParseLibpostal(_currentLine);
 
-            var addressComponents = parseComponents(_currentLine);
+                    isMath = trueComponents.Where(c => !c.IsEmpty).SequenceEqual(libpostalComponents, comparer);
+                } while (!isMath);
+            }
+            else if (_useNextDifferentRecord.isOn)
+            {
+                bool isMath = false;
+                var comparer = new ElementModelMatchComparer();
+                do
+                {
+                    _currentLine = dataReader.GetNextRecord();
+                    var trueComponents = FillComponents(_currentLine, addressView.AddressColumns);
+                    var libpostalComponents = ParseLibpostal(_currentLine);
+                    isMath = trueComponents.Where(c => !c.IsEmpty).SequenceEqual(libpostalComponents, comparer);
+                } while (isMath);
+            }
+            else
+                _currentLine = dataReader.GetNextRecord();
+        }
+
+        private static IEnumerable<ElementModel> FillComponents(string addrString, AddressFormatter[] addressColumns, ElementSource source = ElementSource.PreparePythonScript) =>
+            addrString
+                .Split(SPLIT_SEPATARE)
+                .Zip(addressColumns, (value, address) =>
+                    new ElementModel(address, value, ElementSource.PreparePythonScript));
+
+        private void ShowCurrentAddress()
+        {
+            var addressComponents = FillComponents(_currentLine, tsvAddressView.AddressColumns);
             tsvAddressView.Setup(addressComponents);
 
             ShowLibpostalParse(_currentLine);
@@ -260,7 +259,7 @@ namespace LP.UI
 
         private void OnRefreshAddress()
         {
-            ShowNextAddress(false);
+            ShowCurrentAddress();
         }
 
         private async void DumpProgress()
