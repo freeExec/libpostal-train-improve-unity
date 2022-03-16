@@ -161,7 +161,7 @@ namespace LP.UI
             libpostal.LibpostalTeardownLanguageClassifier();
         }
 
-        private async void OnDeleteRecord()
+        private void OnDeleteRecord()
         {
             Waiting = true;
             //await System.Threading.Tasks.Task.Run(() => dataReader.DeleteCurrentRecord());
@@ -245,12 +245,12 @@ namespace LP.UI
                 .Zip(addressColumns, (value, address) =>
                     new ElementModel(address, value, ElementSource.PreparePythonScript));
 
-        private void ShowCurrentAddress()
+        private void ShowCurrentAddress(bool applyNormAddr = true)
         {
             var addressComponents = FillComponents(_currentLine, tsvAddressView.AddressColumns);
             tsvAddressView.Setup(addressComponents);
 
-            ShowLibpostalParse(_currentLine);
+            ShowLibpostalParse(_currentLine, applyNormAddr);
 
             outAddressView.Setup(tsvAddressView.Elements.Where(e => !e.IsEmpty));
 
@@ -259,7 +259,7 @@ namespace LP.UI
 
         private void OnRefreshAddress()
         {
-            ShowCurrentAddress();
+            ShowCurrentAddress(false);
         }
 
         private async void DumpProgress()
@@ -359,26 +359,31 @@ namespace LP.UI
 
             foreach (var tuple in _replacesHelperToInserSpace)
             {
-                var fixElement = elements.FirstOrDefault(e => e.Group == tuple.AddressFormatter);
-                if (fixElement == null)
-                    continue;
-                foreach (var replace in tuple.Replaces)
+                for (int i = 0; i < elements.Count; i++)
                 {
+                    var fixElement = elements[i];
+                    if (fixElement.Group != tuple.AddressFormatter)
+                        continue;
+
                     int originalLength = fixElement.Value.Length;
                     string elementValue = fixElement.Value.TrimEnd('.', ' ');
                     bool isModify = originalLength > elementValue.Length;
-                    int pos = elementValue.IndexOf(replace);
-                    int posToInsert = pos + replace.Length;
-                    if (pos != -1 && posToInsert < elementValue.Length && elementValue[posToInsert] != ' ')
+                    foreach (var replace in tuple.Replaces)
                     {
-                        elementValue = elementValue.Insert(posToInsert, " ");
-                        isModify = true;
+                        int pos = elementValue.IndexOf(replace);
+                        if (pos == -1)
+                            continue;
+
+                        int posToInsert = pos + replace.Length;
+                        if (posToInsert < elementValue.Length && elementValue[posToInsert] != ' ')
+                        {
+                            elementValue = elementValue.Insert(posToInsert, " ");
+                            isModify = true;
+                        }
                     }
                     if (isModify)
                     {
-                        int index = elements.IndexOf(fixElement);
-                        fixElement = new ElementModel(tuple.AddressFormatter, elementValue, ElementSource.ManualUserSeparate);
-                        elements[index] = fixElement;
+                        elements[i] = new ElementModel(tuple.AddressFormatter, elementValue, ElementSource.ManualUserSeparate);
                     }
                 }
             }
