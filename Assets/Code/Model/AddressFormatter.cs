@@ -18,6 +18,7 @@ namespace LP.Model
         HouseNumber,
         Level,
         Unit,
+        Category,
     }
 
     public static class AddressFormatterHelper
@@ -34,6 +35,7 @@ namespace LP.Model
             { AddressFormatter.HouseNumber,     "house_number"  },
             { AddressFormatter.Level,           "level"         },
             { AddressFormatter.Unit,            "unit"          },
+            { AddressFormatter.Category,        "category"      },
         };
 
         // private static Dictionary<string, AddressFormatter> _reverseConverter = _converter.ToDictionary(c => c.Value, c => c.Key);

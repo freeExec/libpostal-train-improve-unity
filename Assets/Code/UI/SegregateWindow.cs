@@ -369,7 +369,7 @@ namespace LP.UI
                         continue;
 
                     int originalLength = fixElement.Value.Length;
-                    string elementValue = fixElement.Value.TrimEnd('.', ' ');
+                    string elementValue = fixElement.Value.TrimEnd('.', ' ').Replace("«", "").Replace("»", "");
                     bool isModify = originalLength > elementValue.Length;
                     foreach (var replace in tuple.Replaces)
                     {

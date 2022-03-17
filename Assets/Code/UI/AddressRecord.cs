@@ -10,7 +10,6 @@ namespace LP.UI
 {
     public class AddressRecord : MonoBehaviour
     {
-        [SerializeField] Color[] _groupColors;
         [SerializeField] Transform _container = default;
         [SerializeField] Transform _dragZone = default;
         [SerializeField] AddressFormatter[] _addressColumns = default;
