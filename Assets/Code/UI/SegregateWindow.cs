@@ -114,7 +114,7 @@ namespace LP.UI
             _buttonInsertSpace.onClick.AddListener(OnInsertSpaceAndTrim);
 
             _trashDrop.OnDropAddressComponent += (component) => component.SetEmpty();
-            _libpostalParseDrop.OnDropAddressComponent += (component) => ShowLibpostalParse(component.Element.Value, false);
+            _libpostalParseDrop.OnDropAddressComponent += (component) => ShowLibpostalParse(component.Element.Value, false, false);
             _editComponentDrop.OnDropAddressComponent += OnEditComponentBegin;
 
             _buttonDumpNormalColor = _buttonDump.colors.normalColor;
@@ -136,11 +136,11 @@ namespace LP.UI
             optExpand.StripAccents = false;
             optExpand.Decompose = false;
 
-            //optExpand.DeleteAcronymPeriods = false;
-            //optExpand.DeleteNumericHyphens = false;
-            //optExpand.DropParentheticals = false;
-            //optExpand.DeleteWordHyphens = false;
-            //optExpand.DropEnglishPossessives = false;
+            //optExpand.DeleteAcronymPeriods = false;       // удалять сокращения??
+            //optExpand.DeleteNumericHyphens = false;       // удалять числовые дефисы
+            //optExpand.DropParentheticals = false;         // отбросить скобки
+            //optExpand.DeleteWordHyphens = false;          // удалять перенос слова
+            //optExpand.DropEnglishPossessives = false;     // отбросить английское склонение
             optExpand.DeleteApostrophes = false;
 
             optExpand.SplitAlphaFromNumeric = false;        // раздвигать буквы от цифр (особо мешает в номере дома)
@@ -163,13 +163,10 @@ namespace LP.UI
 
         private void OnDeleteRecord()
         {
-            Waiting = true;
-            //await System.Threading.Tasks.Task.Run(() => dataReader.DeleteCurrentRecord());
             dataReader.DeleteCurrentRecord();
             SetNextAddress(tsvAddressView);
             ShowCurrentAddress();
             _buttonDump.interactable = true;
-            Waiting = false;
         }
 
         private void SaveAddress(AddressRecord record)
@@ -250,7 +247,7 @@ namespace LP.UI
             var addressComponents = FillComponents(_currentLine, tsvAddressView.AddressColumns);
             tsvAddressView.Setup(addressComponents);
 
-            ShowLibpostalParse(_currentLine, applyNormAddr);
+            ShowLibpostalParse(_currentLine, true, applyNormAddr);
 
             outAddressView.Setup(tsvAddressView.Elements.Where(e => !e.IsEmpty));
 
@@ -287,7 +284,7 @@ namespace LP.UI
             var elementsMap = outAddressView.Elements.ToLookup(e => e.Group);
 
             var addrStr = string.Join(" ", headerOrder.Select(h => string.Join(" ", elementsMap[h].Select(e => e.Value))));
-            ShowLibpostalParse(addrStr, false);
+            ShowLibpostalParse(addrStr, true, false);
         }
 
         private IEnumerable<ElementModel> ParseLibpostal(string addrStr)
@@ -318,7 +315,7 @@ namespace LP.UI
             return addressComponents;
         }
 
-        private void ShowLibpostalParse(string addrStr, bool applyNormAddr = true)
+        private void ShowLibpostalParse(string addrStr, bool applyNormAddr, bool saveNormAddr)
         {
             var addrStrNoTab = addrStr.Replace('\t', ' ');
             var addressComponents = ParseLibpostal(addrStrNoTab);
@@ -327,13 +324,19 @@ namespace LP.UI
 
             if (applyNormAddr)
             {
-                _lastNormAddr.text = _normAddr.text;
+                if (saveNormAddr)
+                    _lastNormAddr.text = _normAddr.text;
+                var extendAddr = libpostal.LibpostalExpandAddress(addrStrNoTab, optExpand);
+                _normAddr.text = extendAddr.Expansions[0];
+
             }
+            int levensh = -1;
+            int minLength = Mathf.Min(_lastNormAddr.text.Length, _normAddr.text.Length);
+            if (minLength > 25)
+                levensh = EditDistance.DamerauLevenshteinDistance(_lastNormAddr.text.Substring(0, minLength), _normAddr.text.Substring(0, minLength), 8);
+            else
+                levensh = EditDistance.DamerauLevenshteinDistance(_lastNormAddr.text, _normAddr.text, 8);
 
-            var extendAddr = libpostal.LibpostalExpandAddress(addrStrNoTab, optExpand);
-            _normAddr.text = extendAddr.Expansions[0];
-
-            var levensh = EditDistance.DamerauLevenshteinDistance(_lastNormAddr.text, _normAddr.text, 8);
             ReplaceButtonNormalColor(_buttonDelete, (levensh >= 0) ? _warningColor : _buttonDeleteNormalColor);
         }
 

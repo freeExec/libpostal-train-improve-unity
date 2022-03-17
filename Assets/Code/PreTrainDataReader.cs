@@ -228,7 +228,6 @@ namespace LP.Data
         public void DeleteCurrentRecord()
         {
             _originalLines[_currentOriginalIndex] = string.Empty;
-            //CleanAndPrepare();
             _hasDeletedRecord = true;
         }
 
