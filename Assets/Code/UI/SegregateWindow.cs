@@ -64,6 +64,7 @@ namespace LP.UI
         private int _proccessedCount = 0;
         private Color _buttonDumpNormalColor;
         private Color _buttonDeleteNormalColor;
+        private Color _buttonDeleteHoverColor;
 
         private string _validateDataPath;
 
@@ -119,6 +120,7 @@ namespace LP.UI
 
             _buttonDumpNormalColor = _buttonDump.colors.normalColor;
             _buttonDeleteNormalColor = _buttonDelete.colors.normalColor;
+            _buttonDeleteHoverColor = _buttonDelete.colors.highlightedColor;
 
             var dataPath = Path.Combine(Application.streamingAssetsPath, "Libpostal");
             bool a = libpostal.LibpostalSetupDatadir(dataPath);
@@ -194,7 +196,7 @@ namespace LP.UI
 
             if (_proccessedCount == WARNING_NEED_DUMP)
             {
-                ReplaceButtonNormalColor(_buttonDump, _warningColor);
+                ReplaceButtonNormalColor(_buttonDump, _warningColor, Color.black);
             }
             _proccessedCount++;
         }
@@ -267,7 +269,7 @@ namespace LP.UI
             _buttonDump.interactable = false;
             Waiting = false;
 
-            ReplaceButtonNormalColor(_buttonDump, _buttonDumpNormalColor);
+            ReplaceButtonNormalColor(_buttonDump, _buttonDumpNormalColor, Color.black);
 
             _proccessedCount = 0;
         }
@@ -337,7 +339,8 @@ namespace LP.UI
             else
                 levensh = EditDistance.DamerauLevenshteinDistance(_lastNormAddr.text, _normAddr.text, 8);
 
-            ReplaceButtonNormalColor(_buttonDelete, (levensh >= 0) ? _warningColor : _buttonDeleteNormalColor);
+            ReplaceButtonNormalColor(_buttonDelete, (levensh >= 0) ? _warningColor : _buttonDeleteNormalColor,
+                                                    (levensh >= 0) ? _warningColor : _buttonDeleteHoverColor);
         }
 
         private void OnEditComponentBegin(AddressComponent component)
@@ -402,10 +405,12 @@ namespace LP.UI
             return h2a;
         }
 
-        private static void ReplaceButtonNormalColor(Button button, Color color)
+        private static void ReplaceButtonNormalColor(Button button, Color colorNormal, Color colorHover)
         {
             var colors = button.colors;
-            colors.normalColor = color;
+            colors.normalColor = colorNormal;
+            if (colorHover != Color.black)
+                colors.highlightedColor = colorHover;
             button.colors = colors;
         }
     }
