@@ -15,7 +15,7 @@ namespace LP.UI
     public class SegregateWindow : MonoBehaviour
     {
         private const char SPLIT_SEPATARE = '\t';
-        private const int WARNING_NEED_DUMP = 50;
+        private const int WARNING_NEED_DUMP = 15;
 
         [SerializeField] AddressRecord tsvAddressView = default;
         [SerializeField] AddressRecord postalAddressView = default;
@@ -396,7 +396,7 @@ namespace LP.UI
 
         private static List<AddressFormatter> HeaderToAddress(string header)
         {
-            //index	region	district	city	suburb	street	house_number	unit
+            //index	region	district	city	suburb	street	house_number	unit    category
             var helperReverce = Enum.GetValues(typeof(AddressFormatter)).Cast<AddressFormatter>().ToDictionary(af => af.ToTsvString());
             var h2a = header.Split('\t').Select(c => helperReverce[c]).ToList();
             return h2a;
