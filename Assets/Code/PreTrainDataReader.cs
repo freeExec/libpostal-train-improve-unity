@@ -67,11 +67,11 @@ namespace LP.Data
         public int TotalLines => _originalLines.Length;
         public int CurrentLine => _currentOriginalIndex;
 
-        public PreTrainDataReader(string StorePath)
+        public PreTrainDataReader(string storePath)
         {
-            _completeBitMapFilePath = Path.Combine(StorePath, CompleteBitMapFileName);
-            _preTrainDataFilePath = Path.Combine(StorePath, PreTrainFileName);
-            _completePreTrainDataFilePath = Path.Combine(StorePath, CompletePreTrainFileName);
+            _completeBitMapFilePath = Path.Combine(storePath, CompleteBitMapFileName);
+            _preTrainDataFilePath = Path.Combine(storePath, PreTrainFileName);
+            _completePreTrainDataFilePath = Path.Combine(storePath, CompletePreTrainFileName);
             //_currentIndex = -1;
 
             ReadTsvPreTrainData();

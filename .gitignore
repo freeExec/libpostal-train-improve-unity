@@ -9,6 +9,5 @@ Assets/StreamingAssets/Libpostal/
 Assets/Plugins/Libpostal/
 .tsv*
 Temp/
-lp-train-verification-mono/
-lp-train-verification/
+lp-train-verification*
 Data/

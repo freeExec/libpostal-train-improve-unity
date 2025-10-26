@@ -17,14 +17,17 @@ namespace LP.UI
         private const char SPLIT_SEPATARE = '\t';
         private const int WARNING_NEED_DUMP = 15;
 
+        [Header("Adresses")]
         [SerializeField] AddressRecord tsvAddressView = default;
         [SerializeField] AddressRecord postalAddressView = default;
         [SerializeField] AddressRecord outAddressView = default;
 
+        [Header("Dropper Box")]
         [SerializeField] DroperBox _trashDrop = default;
         [SerializeField] DroperBox _libpostalParseDrop = default;
         [SerializeField] DroperBox _editComponentDrop = default;
 
+        [Header("Buttons")]
         [SerializeField] Button _buttonDelete = default;
         [SerializeField] Button _buttonRefresh = default;
         [SerializeField] Button _buttonNext = default;
@@ -33,6 +36,7 @@ namespace LP.UI
         [SerializeField] Button _buttonTestLibpostal = default;
         [SerializeField] Button _buttonInsertSpace = default;
 
+        [Header("Toggles")]
         [SerializeField] Toggle _useNextRecord = default;
         [SerializeField] Toggle _useLongestRecord = default;
         [SerializeField] Toggle _useSortAddrRecord = default;
@@ -44,6 +48,8 @@ namespace LP.UI
         [SerializeField] GameObject _waiterView = default;
 
         [SerializeField] EditComponentWindow _editComponentWindow = default;
+
+        [Header("Labels")]
         [SerializeField] TextMeshProUGUI _counter = default;
         [SerializeField] TextMeshProUGUI _normAddr = default;
         [SerializeField] TextMeshProUGUI _lastNormAddr = default;
@@ -99,6 +105,8 @@ namespace LP.UI
 
             _validateDataPath = args[1];
 #endif
+
+            Application.targetFrameRate = 15;
 
             Waiting = true;
             await System.Threading.Tasks.Task.Run(() => dataReader = new PreTrainDataReader(_validateDataPath));
