@@ -205,6 +205,26 @@ namespace LP.UI
 
         private void OnFileSelectedHandler(int index)
         {
+            if (_proccessedCount >= WARNING_NEED_DUMP)
+            {
+                _messageWindow.OnFinish += RequestSaveRecord;
+                _messageWindow.Setup("More unsaved records. Ok Save. (X) Discard.");
+                _messageWindow.gameObject.SetActive(true);
+                _proccessedCount = 0;
+                return;
+            }
+            
+            LoadSelectedFileAsync();
+        }
+
+        private void RequestSaveRecord(MessageBoxAnswer answer)
+        {
+            _messageWindow.OnFinish -= RequestSaveRecord;
+            if (answer == MessageBoxAnswer.Ok)
+            {
+                DumpProgress();
+            }
+
             LoadSelectedFileAsync();
         }
 
