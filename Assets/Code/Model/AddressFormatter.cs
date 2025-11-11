@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LibPostalNet;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -55,12 +56,33 @@ namespace LP.Model
         };
 
         public static string ToTsvString(this AddressFormatter formatter) => _converter[formatter];
+
         public static AddressFormatter GetFormatterFromLibpostal(string component)
         {
             if (_libpostalConverter.TryGetValue(component, out AddressFormatter formatter))
                 return formatter;
             UnityEngine.Debug.Log(component);
             return AddressFormatter.NotSet;
+        }
+
+        public static ushort ToLibpostalAddress(this AddressFormatter formatter)
+        {
+            return formatter switch
+            {
+                AddressFormatter.PostCode => LibpostalNormalizeOptions.LIBPOSTAL_ADDRESS_POSTAL_CODE,
+
+                AddressFormatter.State => LibpostalNormalizeOptions.LIBPOSTAL_ADDRESS_TOPONYM,
+                AddressFormatter.StateDisctrict => LibpostalNormalizeOptions.LIBPOSTAL_ADDRESS_TOPONYM,
+                AddressFormatter.City => LibpostalNormalizeOptions.LIBPOSTAL_ADDRESS_TOPONYM,
+                AddressFormatter.CityDistrict => LibpostalNormalizeOptions.LIBPOSTAL_ADDRESS_TOPONYM,
+
+                AddressFormatter.Road => LibpostalNormalizeOptions.LIBPOSTAL_ADDRESS_STREET,
+                AddressFormatter.HouseNumber => LibpostalNormalizeOptions.LIBPOSTAL_ADDRESS_HOUSE_NUMBER,
+                AddressFormatter.Level => LibpostalNormalizeOptions.LIBPOSTAL_ADDRESS_LEVEL,
+                AddressFormatter.Unit => LibpostalNormalizeOptions.LIBPOSTAL_ADDRESS_UNIT,
+
+                _ => throw new NotImplementedException()
+            };
         }
     }
 }

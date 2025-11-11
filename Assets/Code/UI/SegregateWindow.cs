@@ -146,6 +146,9 @@ namespace LP.UI
             optExpand.StripAccents = false;
             optExpand.Decompose = false;
 
+            optExpand.Transliterate = false;
+            optExpand.Lowercase = false;
+
             //optExpand.DeleteAcronymPeriods = false;       // удалять сокращения??
             //optExpand.DeleteNumericHyphens = false;       // удалять числовые дефисы
             //optExpand.DropParentheticals = false;         // отбросить скобки
@@ -155,6 +158,8 @@ namespace LP.UI
 
             optExpand.SplitAlphaFromNumeric = false;        // раздвигать буквы от цифр (особо мешает в номере дома)
             optExpand.ReplaceWordHyphens = false;           // удалять дефисы
+
+            optExpand.Langs = new[] { "ru" };
 
             parseOpt = new LibpostalAddressParserOptions();
 
@@ -334,12 +339,9 @@ namespace LP.UI
 
             if (applyNormAddr)
             {
-                if (saveNormAddr)
-                    _lastNormAddr.text = _normAddr.text;
-                var extendAddr = libpostal.LibpostalExpandAddress(addrStrNoTab, optExpand);
-                _normAddr.text = extendAddr.Expansions[0];
-
+                SetNormAddr(saveNormAddr, addressComponents);
             }
+
             int levensh = -1;
             int minLength = Mathf.Min(_lastNormAddr.text.Length, _normAddr.text.Length);
             if (minLength > 25)
@@ -349,6 +351,23 @@ namespace LP.UI
 
             ReplaceButtonNormalColor(_buttonDelete, (levensh >= 0) ? _warningColor : _buttonDeleteNormalColor,
                                                     (levensh >= 0) ? _warningColor : _buttonDeleteHoverColor);
+        }
+
+        private void SetNormAddr(bool saveNormAddr, IEnumerable<ElementModel> addressComponents)
+        {
+            if (saveNormAddr)
+                _lastNormAddr.text = _normAddr.text;
+
+            string expandAddrCombine = string.Empty;
+            foreach (ElementModel addressComponent in addressComponents)
+            {
+                optExpand.AddressComponents = (ushort)addressComponent.Group.ToLibpostalAddress();
+                var expandAddr = libpostal.LibpostalExpandAddress(addressComponent.Value, optExpand);
+
+                expandAddrCombine += expandAddr.Expansions[0] + " ";
+            }
+
+            _normAddr.text = expandAddrCombine;
         }
 
         private void OnEditComponentBegin(AddressComponent component)
