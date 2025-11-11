@@ -43,9 +43,9 @@ namespace LP.Data
             }
         }
 
-        private const string PreTrainFileName = "license_separate_addresses.tsv";
-        private const string CompletePreTrainFileName = "license_separate_addresses_complete.tsv";
-        private const string CompleteBitMapFileName = "bitmap.dat";
+        private const string PreTrainExtension = ".tsv";
+        private const string CompletePreTrainFileName = "_complete.tsv";
+        private const string CompleteBitMapExtension = ".bitmap";
 
         private readonly string _completeBitMapFilePath;
         private readonly string _preTrainDataFilePath;
@@ -67,11 +67,11 @@ namespace LP.Data
         public int TotalLines => _originalLines.Length;
         public int CurrentLine => _currentOriginalIndex;
 
-        public PreTrainDataReader(string storePath)
+        public PreTrainDataReader(string storePath, string filenameWithoutExtension)
         {
-            _completeBitMapFilePath = Path.Combine(storePath, CompleteBitMapFileName);
-            _preTrainDataFilePath = Path.Combine(storePath, PreTrainFileName);
-            _completePreTrainDataFilePath = Path.Combine(storePath, CompletePreTrainFileName);
+            _preTrainDataFilePath = Path.Combine(storePath, filenameWithoutExtension + PreTrainExtension);
+            _completePreTrainDataFilePath = Path.Combine(storePath, filenameWithoutExtension + CompletePreTrainFileName);
+            _completeBitMapFilePath = Path.Combine(storePath, filenameWithoutExtension + CompleteBitMapExtension);
             //_currentIndex = -1;
 
             ReadTsvPreTrainData();
@@ -114,28 +114,37 @@ namespace LP.Data
             _sortLongestStates = new SortState<int>(_originalLines.Length);
             _sortAddrStates = new SortState<string>(_originalLines.Length);
 
-            int streetIndex = 5;
-            int houseIndex = 6;
-            //char[] splitTab = new char[] { '\t' };
+            const string HEADER_STREET = "street";
+            const string HEADER_HOUSE_NUMBER = "house_number";
+
+            char[] splitTab = new char[] { '\t' };
+            var columns = Header.Split(splitTab);
+
+            int streetIndex = Array.IndexOf(columns, HEADER_STREET);
+            int houseIndex = Array.IndexOf(columns, HEADER_HOUSE_NUMBER);
+
             for (int i = 1; i < _originalLines.Length; i++)
             {
                 _sortLongestStates.OrderLines.Add(new KeyValuePair<int, int>(_originalLines[i].Length, i));
 
-                int cp = -1;
-                int ci = 0;
-                int s = 0, e = 0;
-                do
+                if (streetIndex != -1 && houseIndex != -1)
                 {
-                    cp = _originalLines[i].IndexOf('\t', cp + 1);
+                    int cp = -1;
+                    int ci = 0;
+                    int s = 0, e = 0;
+                    do
+                    {
+                        cp = _originalLines[i].IndexOf('\t', cp + 1);
 
-                    if (ci == streetIndex - 1)
-                        s = cp + 1;
-                    else if (ci == houseIndex)
-                        e = cp;
+                        if (ci == streetIndex - 1)
+                            s = cp + 1;
+                        else if (ci == houseIndex)
+                            e = cp;
 
-                    ci++;
-                } while (cp != -1);
-                _sortAddrStates.OrderLines.Add(new KeyValuePair<string, int>(_originalLines[i].Substring(s, e - s), i));
+                        ci++;
+                    } while (cp != -1);
+                    _sortAddrStates.OrderLines.Add(new KeyValuePair<string, int>(_originalLines[i].Substring(s, e - s), i));
+                }
             }
             _sortLongestStates.OrderLines.Sort((t1, t2) => t2.Key.CompareTo(t1.Key));
             _sortAddrStates.OrderLines.Sort((t1, t2) => string.CompareOrdinal(t1.Key, t2.Key));
@@ -302,18 +311,6 @@ namespace LP.Data
             }
 
             return string.Empty;
-        }
-
-        private void TestRemoveDublicateMap()
-        {
-            UnityEngine.Debug.Log($"VVVVVVV");
-            for (int i = 1; i < _originalLines.Length; i++)
-            {
-                if (!_bitMap[i])
-                    continue;
-
-                UnityEngine.Debug.Log($"Check: {i} => {_originalLines[i]}");
-            }
         }
     }
 }

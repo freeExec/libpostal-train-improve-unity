@@ -9,6 +9,7 @@ using LP.Data;
 using LP.Model;
 using UnityEngine.UI;
 using System;
+using System.Threading.Tasks;
 
 namespace LP.UI
 {
@@ -56,6 +57,8 @@ namespace LP.UI
 
         [SerializeField] MessageWindow _messageWindow = default;
 
+        [SerializeField] TMP_Dropdown _selectFile = default;
+
         [Header("Colours")]
         [SerializeField] Color _warningColor = Color.red;
 
@@ -72,7 +75,27 @@ namespace LP.UI
         private Color _buttonDeleteNormalColor;
         private Color _buttonDeleteHoverColor;
 
-        private string _validateDataPath;
+        private string ValidateDataPath
+        {
+            get
+            {
+#if UNITY_EDITOR
+                var validateDataPath = Application.dataPath + "\\..\\Data";
+#else
+                var args = Environment.GetCommandLineArgs();
+                if (args.Length < 2)
+                {
+                    _messageWindow.Setup("Set Data DIR. Exit!");
+                    _messageWindow.gameObject.SetActive(true);
+
+                    return;
+                }
+
+                var validateDataPath = args[1];
+#endif
+                return validateDataPath;
+            }
+        }
 
         (AddressFormatter AddressFormatter, string[] Replaces)[] _replacesHelperToInserSpace = new (AddressFormatter, string[])[]
         {
@@ -89,30 +112,17 @@ namespace LP.UI
             set { _waiterView.SetActive(value); }
         }
 
-        async void Start()
+        private void Start()
         {
-#if UNITY_EDITOR
-            _validateDataPath = Application.dataPath + "\\..\\Data";
-#else
-            var args = Environment.GetCommandLineArgs();
-            if (args.Length < 2)
-            {
-                _messageWindow.Setup("Set Data DIR. Exit!");
-                _messageWindow.gameObject.SetActive(true);
-
-                return;
-            }
-
-            _validateDataPath = args[1];
-#endif
-
             Application.targetFrameRate = 15;
+            //Waiting = true;
+            //await System.Threading.Tasks.Task.Run(() => dataReader = new PreTrainDataReader(_validateDataPath));
 
-            Waiting = true;
-            await System.Threading.Tasks.Task.Run(() => dataReader = new PreTrainDataReader(_validateDataPath));
-
-            headerOrder = HeaderToAddress(dataReader.Header);
+            //headerOrder = HeaderToAddress(dataReader.Header);
             //var currentLine = dataReader.GetNextRecord();   // headers
+
+            _selectFile.onValueChanged.AddListener(OnFileSelectedHandler);
+            SelectFileFill();
 
             _buttonDelete.onClick.AddListener(OnDeleteRecord);
             _buttonNext.onClick.AddListener(OnNextAddress);
@@ -163,9 +173,9 @@ namespace LP.UI
 
             parseOpt = new LibpostalAddressParserOptions();
 
-            SetNextAddress(tsvAddressView);
-            ShowCurrentAddress();
-            Waiting = false;
+            //SetNextAddress(tsvAddressView);
+            //ShowCurrentAddress();
+            //Waiting = false;
         }
 
         private void OnDestroy()
@@ -174,6 +184,42 @@ namespace LP.UI
             libpostal.LibpostalTeardown();
             libpostal.LibpostalTeardownParser();
             libpostal.LibpostalTeardownLanguageClassifier();
+        }
+
+        const string FILE_EXT_TSV = ".tsv";
+        const string FILE_MASK_TSV = "*" + FILE_EXT_TSV;
+        const string FILE_COMPLITED_SUFFIX = "_completed";
+        const string FILE_COMPLITED_TSV = FILE_COMPLITED_SUFFIX + FILE_EXT_TSV;
+
+        private void SelectFileFill()
+        {
+            var options = new List<TMP_Dropdown.OptionData>();
+            foreach (var fileTsv in Directory.EnumerateFiles(ValidateDataPath, FILE_MASK_TSV))
+            {
+                if (fileTsv.EndsWith(FILE_COMPLITED_TSV)) continue;
+                options.Add(new TMP_Dropdown.OptionData(Path.GetFileNameWithoutExtension(fileTsv)));
+            }
+            _selectFile.AddOptions(options);
+            _selectFile.value = 0;
+        }
+
+        private void OnFileSelectedHandler(int index)
+        {
+            LoadSelectedFileAsync();
+        }
+
+        private async void LoadSelectedFileAsync()
+        {
+            var filename = _selectFile.options[_selectFile.value].text;
+
+            Waiting = true;
+            await System.Threading.Tasks.Task.Run(() => dataReader = new PreTrainDataReader(ValidateDataPath, filename));
+
+            headerOrder = HeaderToAddress(dataReader.Header);
+
+            SetNextAddress(tsvAddressView);
+            ShowCurrentAddress();
+            Waiting = false;
         }
 
         private void OnDeleteRecord()
