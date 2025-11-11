@@ -6,7 +6,7 @@ Library/
 Logs/
 obj/
 Assets/StreamingAssets/Libpostal/
-Assets/Plugins/Libpostal/
+Assets/Plugins/Libpostal/x64*
 .tsv*
 Temp/
 lp-train-verification*
