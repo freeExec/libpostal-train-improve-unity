@@ -11,6 +11,7 @@ namespace LP.Model
     {
         NotSet          = -1,
         PostCode        = 0,
+        Country,
         State,
         StateDisctrict,
         City,
@@ -28,6 +29,7 @@ namespace LP.Model
         {
             { AddressFormatter.NotSet,          "NONE_NULL"     },
             { AddressFormatter.PostCode,        "index"         },
+            { AddressFormatter.Country,         "country"       },
             { AddressFormatter.State,           "region"        },
             { AddressFormatter.StateDisctrict,  "district"      },
             { AddressFormatter.City,            "city"          },
@@ -44,6 +46,7 @@ namespace LP.Model
         {
             { "NONE_NULL",      AddressFormatter.NotSet         },
             { "postcode",       AddressFormatter.PostCode       },
+            { "country",        AddressFormatter.Country        },
             { "state",          AddressFormatter.State          },
             { "state_district", AddressFormatter.StateDisctrict },
             { "city",           AddressFormatter.City           },
@@ -71,6 +74,7 @@ namespace LP.Model
             {
                 AddressFormatter.PostCode => LibpostalNormalizeOptions.LIBPOSTAL_ADDRESS_POSTAL_CODE,
 
+                AddressFormatter.Country => LibpostalNormalizeOptions.LIBPOSTAL_ADDRESS_TOPONYM,
                 AddressFormatter.State => LibpostalNormalizeOptions.LIBPOSTAL_ADDRESS_TOPONYM,
                 AddressFormatter.StateDisctrict => LibpostalNormalizeOptions.LIBPOSTAL_ADDRESS_TOPONYM,
                 AddressFormatter.City => LibpostalNormalizeOptions.LIBPOSTAL_ADDRESS_TOPONYM,
@@ -81,7 +85,7 @@ namespace LP.Model
                 AddressFormatter.Level => LibpostalNormalizeOptions.LIBPOSTAL_ADDRESS_LEVEL,
                 AddressFormatter.Unit => LibpostalNormalizeOptions.LIBPOSTAL_ADDRESS_UNIT,
 
-                _ => throw new NotImplementedException()
+                _ => throw new NotImplementedException(formatter.ToString())
             };
         }
     }

@@ -16,7 +16,6 @@ namespace LP.Model
             [SerializeField] Color _color;
             [SerializeField] int _widthColumn;
 
-
             public AddressFormatter AddressFormatter => _adressFormatter;
             public Color Color => _color;
             public int WidthColumn => _widthColumn;
