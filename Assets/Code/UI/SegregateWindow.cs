@@ -88,7 +88,7 @@ namespace LP.UI
                     _messageWindow.Setup("Set Data DIR. Exit!");
                     _messageWindow.gameObject.SetActive(true);
 
-                    return;
+                    return "BAD-PATH";
                 }
 
                 var validateDataPath = args[1];
