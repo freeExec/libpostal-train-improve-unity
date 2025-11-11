@@ -117,7 +117,7 @@ namespace LP.Data
             int streetIndex = 5;
             int houseIndex = 6;
             //char[] splitTab = new char[] { '\t' };
-            for (int i = 0; i < _originalLines.Length; i++)
+            for (int i = 1; i < _originalLines.Length; i++)
             {
                 _sortLongestStates.OrderLines.Add(new KeyValuePair<int, int>(_originalLines[i].Length, i));
 
