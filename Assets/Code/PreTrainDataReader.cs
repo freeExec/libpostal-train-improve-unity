@@ -64,7 +64,7 @@ namespace LP.Data
 
         public string Header => _originalLines[0];
         public int CompletedLines { get; private set; }
-        public int TotalLines => _originalLines.Length;
+        public int TotalLines => _originalLines.Length - 1; // за вычетом строки-заголовка
         public int CurrentLine => _currentOriginalIndex;
 
         public PreTrainDataReader(string storePath, string filenameWithoutExtension)
@@ -107,7 +107,7 @@ namespace LP.Data
             RemoveDublicate(ref _originalLines, ref _bitMap);
 
             Profiler.BeginSample("GetMappedCount");
-            CompletedLines = _bitMap.GetMappedCount();
+            CompletedLines = _bitMap.GetMappedCount() - 1;  // минус заголовок
             Profiler.EndSample();
 
             Profiler.BeginSample("OrderByLongLines");
@@ -123,7 +123,7 @@ namespace LP.Data
             int streetIndex = Array.IndexOf(columns, HEADER_STREET);
             int houseIndex = Array.IndexOf(columns, HEADER_HOUSE_NUMBER);
 
-            for (int i = 1; i < _originalLines.Length; i++)
+            for (int i = 0; i < _originalLines.Length; i++)     // включаем заголовк, он не будет выбран, т.к. зарание помечен, что сделан
             {
                 _sortLongestStates.OrderLines.Add(new KeyValuePair<int, int>(_originalLines[i].Length, i));
 
@@ -243,18 +243,19 @@ namespace LP.Data
         public void MarkRecordOk()
         {
             _bitMap[_currentOriginalIndex] = true;
-            CompletedLines++;
+            if (CompletedLines < _bitMap.Length)
+                CompletedLines++;
         }
 
         public string GetNextRecord()
         {
             int index = _currentOriginalIndex;
-            while (index < _bitMap.Length)
-            {
-                index++;
-                if (_bitMap[index])
-                    continue;
 
+            while (index < _bitMap.Length && _bitMap[index])
+            { index++; }
+
+            if (index < _bitMap.Length)
+            {
                 _currentOriginalIndex = index;
                 return _originalLines[_currentOriginalIndex];
             }
@@ -264,12 +265,12 @@ namespace LP.Data
         public string GetNextRecordByRandom()
         {
             int index = UnityEngine.Random.Range(0, _originalLines.Length);
-            while (index < _bitMap.Length)
-            {
-                index++;
-                if (_bitMap[index])
-                    continue;
 
+            while (index < _bitMap.Length && _bitMap[index])
+            { index++; }
+
+            if (index < _bitMap.Length)
+            {
                 _currentOriginalIndex = index;
                 return _originalLines[_currentOriginalIndex];
             }
@@ -279,13 +280,13 @@ namespace LP.Data
 
         public string GetNextRecordByLong()
         {
-            int index = _sortLongestStates.CurrentIndex;
+            int index = _sortLongestStates.CurrentIndex + 1;
             while (index < _bitMap.Length)
             {
-                index++;
                 int originalIndex = _sortLongestStates.OrderLines[index].Value;
+                index++;
                 if (_bitMap[originalIndex])
-                    continue;
+                    continue;                
 
                 _sortLongestStates.CurrentIndex = index;
                 _currentOriginalIndex = originalIndex;
@@ -297,13 +298,13 @@ namespace LP.Data
 
         public string GetNextRecordBySortAddr()
         {
-            int index = _sortAddrStates.CurrentIndex;
-            while (index < _bitMap.Length)
+            int index = _sortAddrStates.CurrentIndex + 1;
+            while (index < _bitMap.Length - 1)
             {
-                index++;
                 int originalIndex = _sortAddrStates.OrderLines[index].Value;
+                index++;
                 if (_bitMap[originalIndex])
-                    continue;
+                    continue;                
 
                 _sortAddrStates.CurrentIndex = index;
                 _currentOriginalIndex = originalIndex;

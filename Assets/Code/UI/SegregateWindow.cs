@@ -297,9 +297,9 @@ namespace LP.UI
                 do
                 {
                     _currentLine = dataReader.GetNextRecord();
+                    if (string.IsNullOrEmpty(_currentLine)) break;
                     var trueComponents = FillComponents(_currentLine, addressView.AddressColumns);
                     var libpostalComponents = ParseLibpostal(_currentLine);
-
                     isMath = trueComponents.Where(c => !c.IsEmpty).SequenceEqual(libpostalComponents, comparer);
                 } while (!isMath);
             }
@@ -310,6 +310,7 @@ namespace LP.UI
                 do
                 {
                     _currentLine = dataReader.GetNextRecord();
+                    if (string.IsNullOrEmpty(_currentLine)) break;
                     var trueComponents = FillComponents(_currentLine, addressView.AddressColumns);
                     var libpostalComponents = ParseLibpostal(_currentLine);
                     isMath = trueComponents.Where(c => !c.IsEmpty).SequenceEqual(libpostalComponents, comparer);
@@ -415,7 +416,9 @@ namespace LP.UI
 
             int levensh = -1;
             int minLength = Mathf.Min(_lastNormAddr.text.Length, _normAddr.text.Length);
-            if (minLength > 25)
+            if (minLength == 0)
+            { }
+            else if (minLength > 25)
                 levensh = EditDistance.DamerauLevenshteinDistance(_lastNormAddr.text.Substring(0, minLength), _normAddr.text.Substring(0, minLength), 8);
             else
                 levensh = EditDistance.DamerauLevenshteinDistance(_lastNormAddr.text, _normAddr.text, 8);

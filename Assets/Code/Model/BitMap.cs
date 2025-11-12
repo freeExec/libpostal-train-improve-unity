@@ -19,6 +19,7 @@ namespace LP.Data
         {
             get
             {
+                if (index >= Length) throw new IndexOutOfRangeException();
                 return (_map[index / BIT_TO_BYTE] & (1 << index % BIT_TO_BYTE)) != 0;
             }
             set
