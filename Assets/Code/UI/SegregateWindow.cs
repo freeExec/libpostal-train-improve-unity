@@ -99,11 +99,11 @@ namespace LP.UI
 
         (AddressFormatter AddressFormatter, string[] Replaces)[] _replacesHelperToInserSpace = new (AddressFormatter, string[])[]
         {
-                ( AddressFormatter.City,         new string[] { "п.", "г.", "д.", "с.", "пос." } ),
-                ( AddressFormatter.Road,         new string[] { "ул.", "пр.", "пер." } ),
-                ( AddressFormatter.CityDistrict, new string[] { "мкр." } ),
-                ( AddressFormatter.HouseNumber,  new string[] { "д.", "лит.", "стр.", "кор.", "корп.", "вл." } ),
-                ( AddressFormatter.Unit,         new string[] { "пом.", "кв.", "оф." } ),
+            ( AddressFormatter.City,         new string[] { "п.", "г.", "д.", "с.", "пос." } ),
+            ( AddressFormatter.Road,         new string[] { "ул.", "пр.", "пер." } ),
+            ( AddressFormatter.CityDistrict, new string[] { "мкр." } ),
+            ( AddressFormatter.HouseNumber,  new string[] { "д.", "лит.", "стр.", "кор.", "корп.", "вл." } ),
+            ( AddressFormatter.Unit,         new string[] { "пом.", "кв.", "оф." } ),
         };
 
         private bool Waiting
@@ -188,7 +188,7 @@ namespace LP.UI
 
         const string FILE_EXT_TSV = ".tsv";
         const string FILE_MASK_TSV = "*" + FILE_EXT_TSV;
-        const string FILE_COMPLITED_SUFFIX = "_completed";
+        const string FILE_COMPLITED_SUFFIX = "_complete";
         const string FILE_COMPLITED_TSV = FILE_COMPLITED_SUFFIX + FILE_EXT_TSV;
 
         private void SelectFileFill()
@@ -430,7 +430,9 @@ namespace LP.UI
                 optExpand.AddressComponents = (ushort)addressComponent.Group.ToLibpostalAddress();
                 var expandAddr = libpostal.LibpostalExpandAddress(addressComponent.Value, optExpand);
 
-                expandAddrCombine += expandAddr.Expansions[0] + " ";
+                //int maxLength = expandAddr.Expansions.Max(e  => e.Length);
+                //expandAddrCombine += expandAddr.Expansions.First(e => e.Length == maxLength) + " ";
+                expandAddrCombine += expandAddr.Expansions.First() + " ";
             }
 
             _normAddr.text = expandAddrCombine;
