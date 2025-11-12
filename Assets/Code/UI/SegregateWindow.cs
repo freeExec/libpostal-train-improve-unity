@@ -59,6 +59,8 @@ namespace LP.UI
 
         [SerializeField] TMP_Dropdown _selectFile = default;
 
+        [SerializeField] DefaultCopySelector _copySelector = default;
+
         [Header("Colours")]
         [SerializeField] Color _warningColor = Color.red;
 
@@ -330,7 +332,10 @@ namespace LP.UI
 
             ShowLibpostalParse(_currentLine, true, applyNormAddr);
 
-            outAddressView.Setup(tsvAddressView.Elements.Where(e => !e.IsEmpty));
+            if (_copySelector.CopySelector == CopySelector.Source)
+                outAddressView.Setup(tsvAddressView.Elements.Where(e => !e.IsEmpty));
+            else
+                outAddressView.Setup(postalAddressView.Elements.Where(e => !e.IsEmpty));
 
             _counter.text = $"Completed: {dataReader.CompletedLines}/{dataReader.TotalLines} ({dataReader.CompletedLines / (float)dataReader.TotalLines:P4}) | {dataReader.CurrentLine} | {_currentLine.Length}";
         }
