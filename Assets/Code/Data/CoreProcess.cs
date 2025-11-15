@@ -1,3 +1,4 @@
+using Assets.Code.Data;
 using LibPostalNet;
 using LP.Model;
 using System;
@@ -22,8 +23,7 @@ namespace LP.Data
         private PreTrainDataReader dataReader;
 
 
-        private LibpostalNormalizeOptions optExpand;
-        private LibpostalAddressParserOptions parseOpt;
+
 
         public string ValidateDataPath
         {
@@ -57,24 +57,12 @@ namespace LP.Data
             
             Instance = this;
             DontDestroyOnLoad(Instance);*/
+            LPRecord.LibPostalSetup(Application.streamingAssetsPath);
         }
 
         private void OnDestroy()
         {
-            // Teardown (only called once at the end of your program)
-            libpostal.LibpostalTeardown();
-            libpostal.LibpostalTeardownParser();
-            libpostal.LibpostalTeardownLanguageClassifier();
-        }
-
-        public bool Setup()
-        {
-            bool libpostalOk = SetupLibpostal();
-            if (libpostalOk)
-            {
-                SetupLibpostalOptions();
-            }
-            return libpostalOk;
+            LPRecord.LibPostalTeardown();
         }
 
         public async Task LoadFileAsync(string filename)
@@ -101,25 +89,10 @@ namespace LP.Data
         public void SetRecord(string row) => dataReader.SetRecord(row);
         public void DeleteCurrentRecord() => dataReader.DeleteCurrentRecord();
 
-        private List<KeyValuePair<string, string>> ParseLibpostal(string addrStr)
-        {
-            var addrStrNoTab = addrStr.Replace('\t', ' ');
-            var parse = libpostal.LibpostalParseAddress(addrStrNoTab.Trim(), parseOpt);
-
-            return parse.Results;
-        }
-
         private LPRecord GetParseRecord(Func<string> getNexrRexort)
         {
             var line = getNexrRexort();
-            var parse = ParseLibpostal(line);
-
-            return new LPRecord()
-            {
-                LineIndex = dataReader.CurrentLineIndex,
-                Line = line,
-                ParseResult = parse,
-            };
+            return new LPRecord(dataReader.CurrentLineIndex, line);
         }
 
         private static List<AddressFormatter> HeaderToAddress(string header)
@@ -130,62 +103,8 @@ namespace LP.Data
             return h2a;
         }
 
-        private bool SetupLibpostal()
-        {
-            var dataPath = Path.Combine(Application.streamingAssetsPath, "Libpostal");
-
-            bool a = libpostal.LibpostalSetupDatadir(dataPath);
-            bool b = libpostal.LibpostalSetupLanguageClassifierDatadir(dataPath);
-            bool c = libpostal.LibpostalSetupParserDatadir(dataPath);
-
-            return a && b && c;
-        }
-
-        private void SetupLibpostalOptions()
-        {
-            optExpand = libpostal.LibpostalGetDefaultOptions();
-            optExpand.LatinAscii = false;
-            optExpand.StripAccents = false;
-            optExpand.Decompose = false;
-
-            optExpand.Transliterate = false;
-            optExpand.Lowercase = false;
-
-            //optExpand.DeleteAcronymPeriods = false;       // удалять сокращения??
-            //optExpand.DeleteNumericHyphens = false;       // удалять числовые дефисы
-            //optExpand.DropParentheticals = false;         // отбросить скобки
-            //optExpand.DeleteWordHyphens = false;          // удалять перенос слова
-            //optExpand.DropEnglishPossessives = false;     // отбросить английское склонение
-            optExpand.DeleteApostrophes = false;
-
-            optExpand.SplitAlphaFromNumeric = false;        // раздвигать буквы от цифр (особо мешает в номере дома)
-            optExpand.ReplaceWordHyphens = false;           // удалять дефисы
-
-            optExpand.Langs = new[] { "ru" };
-
-            parseOpt = new LibpostalAddressParserOptions();
-        }
+        
     }
 
-    public class LPRecord
-    {
-        public int LineIndex;
-        public string Line;
-        public List<KeyValuePair<string, string>> ParseResult;
-
-        public IEnumerable<KeyValuePair<AddressFormatter, string>> ConvertParseToEnum()
-            => ParseResult.Select(r => 
-                    new KeyValuePair<AddressFormatter, string>(AddressFormatterHelper.GetFormatterFromLibpostal(r.Key), RecoveryCase(r.Value))
-            );
-
-        private string RecoveryCase(string libpostalAnsverElement)
-        {
-            int found = Line.IndexOf(libpostalAnsverElement);
-            if (found != -1)
-            {
-                return Line.Substring(found, libpostalAnsverElement.Length);
-            }
-            return libpostalAnsverElement;
-        }
-    }
+    
 }

@@ -15,7 +15,6 @@ namespace LP.UI
 {
     public class SegregateWindow : MonoBehaviour
     {
-        private const char SPLIT_SEPATARE = '\t';
         private const int WARNING_NEED_DUMP = 15;
 
         [SerializeField] CoreProcess _coreProcess = default;
