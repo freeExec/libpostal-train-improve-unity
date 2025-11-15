@@ -18,6 +18,8 @@ namespace LP.UI
         private const char SPLIT_SEPATARE = '\t';
         private const int WARNING_NEED_DUMP = 15;
 
+        [SerializeField] CoreProcess _coreProcess = default;
+
         [Header("Adresses")]
         [SerializeField] AddressRecord tsvAddressView = default;
         [SerializeField] AddressRecord postalAddressView = default;
@@ -64,13 +66,8 @@ namespace LP.UI
         [Header("Colours")]
         [SerializeField] Color _warningColor = Color.red;
 
-        private PreTrainDataReader dataReader;
-        private LibpostalNormalizeOptions optExpand;
-        private LibpostalAddressParserOptions parseOpt;
-        private List<AddressFormatter> headerOrder;
-
         private ComponentsGroup _componentsGroup;
-        private string _currentLine;
+        private LPRecord _currentLPRecord;
 
         private int _proccessedCount = 0;
         private Color _buttonDumpNormalColor;
@@ -80,36 +77,6 @@ namespace LP.UI
         private HashSet<string> prevExpandedAddr;
         private HashSet<string> currentExpandedAddr;
 
-        private string ValidateDataPath
-        {
-            get
-            {
-#if UNITY_EDITOR
-                var validateDataPath = Application.dataPath + "\\..\\Data";
-#else
-                var args = Environment.GetCommandLineArgs();
-                if (args.Length < 2)
-                {
-                    _messageWindow.Setup("Set Data DIR. Exit!");
-                    _messageWindow.gameObject.SetActive(true);
-
-                    return "BAD-PATH";
-                }
-
-                var validateDataPath = args[1];
-#endif
-                return validateDataPath;
-            }
-        }
-
-        (AddressFormatter AddressFormatter, string[] Replaces)[] _replacesHelperToInserSpace = new (AddressFormatter, string[])[]
-        {
-            ( AddressFormatter.City,         new string[] { "п.", "г.", "д.", "с.", "пос." } ),
-            ( AddressFormatter.Road,         new string[] { "ул.", "пр.", "пер." } ),
-            ( AddressFormatter.CityDistrict, new string[] { "мкр." } ),
-            ( AddressFormatter.HouseNumber,  new string[] { "д.", "лит.", "стр.", "кор.", "корп.", "вл." } ),
-            ( AddressFormatter.Unit,         new string[] { "пом.", "кв.", "оф." } ),
-        };
 
         private bool Waiting
         {
@@ -120,11 +87,6 @@ namespace LP.UI
         private void Start()
         {
             Application.targetFrameRate = 15;
-            //Waiting = true;
-            //await System.Threading.Tasks.Task.Run(() => dataReader = new PreTrainDataReader(_validateDataPath));
-
-            //headerOrder = HeaderToAddress(dataReader.Header);
-            //var currentLine = dataReader.GetNextRecord();   // headers
 
             _selectFile.onValueChanged.AddListener(OnFileSelectedHandler);
             SelectFileFill();
@@ -145,50 +107,15 @@ namespace LP.UI
             _buttonDeleteNormalColor = _buttonDelete.colors.normalColor;
             _buttonDeleteHoverColor = _buttonDelete.colors.highlightedColor;
 
-            var dataPath = Path.Combine(Application.streamingAssetsPath, "Libpostal");
-            bool a = libpostal.LibpostalSetupDatadir(dataPath);
-            bool b = libpostal.LibpostalSetupLanguageClassifierDatadir(dataPath);
-            bool c = libpostal.LibpostalSetupParserDatadir(dataPath);
-
-            if (!a || !b || !c)
+            if (!_coreProcess.Setup())
             {
                 _messageWindow.Setup("Libpostal Init FAIL!");
                 _messageWindow.gameObject.SetActive(true);
             }
-
-            optExpand = libpostal.LibpostalGetDefaultOptions();
-            optExpand.LatinAscii = false;
-            optExpand.StripAccents = false;
-            optExpand.Decompose = false;
-
-            optExpand.Transliterate = false;
-            optExpand.Lowercase = false;
-
-            //optExpand.DeleteAcronymPeriods = false;       // удалять сокращения??
-            //optExpand.DeleteNumericHyphens = false;       // удалять числовые дефисы
-            //optExpand.DropParentheticals = false;         // отбросить скобки
-            //optExpand.DeleteWordHyphens = false;          // удалять перенос слова
-            //optExpand.DropEnglishPossessives = false;     // отбросить английское склонение
-            optExpand.DeleteApostrophes = false;
-
-            optExpand.SplitAlphaFromNumeric = false;        // раздвигать буквы от цифр (особо мешает в номере дома)
-            optExpand.ReplaceWordHyphens = false;           // удалять дефисы
-
-            optExpand.Langs = new[] { "ru" };
-
-            parseOpt = new LibpostalAddressParserOptions();
-
-            //SetNextAddress(tsvAddressView);
-            //ShowCurrentAddress();
-            //Waiting = false;
         }
 
         private void OnDestroy()
         {
-            // Teardown (only called once at the end of your program)
-            libpostal.LibpostalTeardown();
-            libpostal.LibpostalTeardownParser();
-            libpostal.LibpostalTeardownLanguageClassifier();
         }
 
         const string FILE_EXT_TSV = ".tsv";
@@ -199,7 +126,7 @@ namespace LP.UI
         private void SelectFileFill()
         {
             var options = new List<TMP_Dropdown.OptionData>();
-            foreach (var fileTsv in Directory.EnumerateFiles(ValidateDataPath, FILE_MASK_TSV))
+            foreach (var fileTsv in Directory.EnumerateFiles(_coreProcess.ValidateDataPath, FILE_MASK_TSV))
             {
                 if (fileTsv.EndsWith(FILE_COMPLITED_TSV)) continue;
                 options.Add(new TMP_Dropdown.OptionData(Path.GetFileNameWithoutExtension(fileTsv)));
@@ -238,9 +165,7 @@ namespace LP.UI
             var filename = _selectFile.options[_selectFile.value].text;
 
             Waiting = true;
-            await System.Threading.Tasks.Task.Run(() => dataReader = new PreTrainDataReader(ValidateDataPath, filename));
-
-            headerOrder = HeaderToAddress(dataReader.Header);
+            await _coreProcess.LoadFileAsync(filename);
 
             SetNextAddress(tsvAddressView);
             ShowCurrentAddress();
@@ -249,7 +174,7 @@ namespace LP.UI
 
         private void OnDeleteRecord()
         {
-            dataReader.DeleteCurrentRecord();
+            _coreProcess.DeleteCurrentRecord();
             SetNextAddress(tsvAddressView);
             ShowCurrentAddress();
             _buttonDump.interactable = true;
@@ -261,9 +186,9 @@ namespace LP.UI
             if (record.Elements.All(e => e.IsEmpty))
                 return;
 
-            var row = string.Join("\t", headerOrder.Select(h => string.Join(" ", elementsMap[h].Select(e => e.Value))));
+            var row = string.Join("\t", _coreProcess.HeaderOrder.Select(h => string.Join(" ", elementsMap[h].Select(e => e.Value))));
 
-            dataReader.SetRecord(row);
+            _coreProcess.SetRecord(row);
         }
 
         private void OnNextAddress()
@@ -288,21 +213,21 @@ namespace LP.UI
         private void SetNextAddress(AddressRecord addressView)
         {
             if (_useLongestRecord.isOn)
-                _currentLine = dataReader.GetNextRecordByLong();
+                _currentLPRecord = _coreProcess.GetNextRecordByLong();
             else if (_useSortAddrRecord.isOn)
-                _currentLine = dataReader.GetNextRecordBySortAddr();
+                _currentLPRecord = _coreProcess.GetNextRecordBySortAddr();
             else if (_useRandomRecord.isOn)
-                _currentLine = dataReader.GetNextRecordByRandom();
+                _currentLPRecord = _coreProcess.GetNextRecordByRandom();
             else if (_useNextMathRecord.isOn)
             {
                 bool isMath = false;
                 var comparer = new ElementModelMatchComparer();
                 do
                 {
-                    _currentLine = dataReader.GetNextRecord();
-                    if (string.IsNullOrEmpty(_currentLine)) break;
-                    var trueComponents = FillComponents(_currentLine, addressView.AddressColumns);
-                    var libpostalComponents = ParseLibpostal(_currentLine);
+                    _currentLPRecord = _coreProcess.GetNextRecord();
+                    if (string.IsNullOrEmpty(_currentLPRecord.Line)) break;
+                    var trueComponents = FillComponents(_currentLPRecord.Line, addressView.AddressColumns);
+                    var libpostalComponents = _currentLPRecord.ConvertParseToEnum().Select(p => new ElementModel(p.Key, p.Value, ElementSource.Libpostal));
                     isMath = trueComponents.Where(c => !c.IsEmpty).SequenceEqual(libpostalComponents, comparer);
                 } while (!isMath);
             }
@@ -312,15 +237,15 @@ namespace LP.UI
                 var comparer = new ElementModelMatchComparer();
                 do
                 {
-                    _currentLine = dataReader.GetNextRecord();
-                    if (string.IsNullOrEmpty(_currentLine)) break;
-                    var trueComponents = FillComponents(_currentLine, addressView.AddressColumns);
-                    var libpostalComponents = ParseLibpostal(_currentLine);
+                    _currentLPRecord = _coreProcess.GetNextRecord();
+                    if (string.IsNullOrEmpty(_currentLPRecord.Line)) break;
+                    var trueComponents = FillComponents(_currentLPRecord.Line, addressView.AddressColumns);
+                    var libpostalComponents = _currentLPRecord.ConvertParseToEnum().Select(p => new ElementModel(p.Key, p.Value, ElementSource.Libpostal));
                     isMath = trueComponents.Where(c => !c.IsEmpty).SequenceEqual(libpostalComponents, comparer);
                 } while (isMath);
             }
             else
-                _currentLine = dataReader.GetNextRecord();
+                _currentLPRecord = _coreProcess.GetNextRecord();
         }
 
         private static IEnumerable<ElementModel> FillComponents(string addrString, AddressFormatter[] addressColumns, ElementSource source = ElementSource.PreparePythonScript) =>
@@ -341,7 +266,7 @@ namespace LP.UI
             else
                 outAddressView.Setup(postalAddressView.Elements.Where(e => !e.IsEmpty));
 
-            _counter.text = $"Completed: {dataReader.CompletedLines}/{dataReader.TotalLines} ({dataReader.CompletedLines / (float)dataReader.TotalLines:P4}) | {dataReader.CurrentLine} | {_currentLine.Length}";
+            _counter.text = $"Completed: {_coreProcess.CompletedLines}/{_coreProcess.TotalLines} ({_coreProcess.CompletedLines / (float)_coreProcess.TotalLines:P4}) | {_coreProcess.CurrentLineIndex} | {_currentLine.Length}";
         }
 
         private void OnRefreshAddress()
@@ -352,8 +277,7 @@ namespace LP.UI
         private async void DumpProgress()
         {
             Waiting = true;
-            await System.Threading.Tasks.Task.Run(() => dataReader.SaveTsvPreTrainData());
-            Debug.Log("Saved");
+            await _coreProcess.SaveTsvPreTrainDataAsync();
             _buttonDump.interactable = false;
             Waiting = false;
 
@@ -362,10 +286,12 @@ namespace LP.UI
             _proccessedCount = 0;
         }
 
-        private void DumpReadyProgress()
+        private async void DumpReadyProgress()
         {
-            dataReader.SaveTsvOnlyCompletePreTrainData();
-            Debug.Log("Saved Ready");
+            Waiting = true;
+            await _coreProcess.SaveTsvOnlyCompletePreTrainData();
+            Waiting = false;
+
             _buttonDump.interactable = false;
         }
 
@@ -373,11 +299,11 @@ namespace LP.UI
         {
             var elementsMap = outAddressView.Elements.ToLookup(e => e.Group);
 
-            var addrStr = string.Join(" ", headerOrder.Select(h => string.Join(" ", elementsMap[h].Select(e => e.Value))));
+            var addrStr = string.Join(" ", _coreProcess.HeaderOrder.Select(h => string.Join(" ", elementsMap[h].Select(e => e.Value))));
             ShowLibpostalParse(addrStr, true, false);
         }
 
-        private IEnumerable<ElementModel> ParseLibpostal(string addrStr)
+        /*private IEnumerable<ElementModel> ParseLibpostal(string addrStr)
         {
             var addrStrNoTab = addrStr.Replace('\t', ' ');
 
@@ -403,7 +329,7 @@ namespace LP.UI
                 ));
 
             return addressComponents;
-        }
+        }*/
 
         private void ShowLibpostalParse(string addrStr, bool applyNormAddr, bool saveNormAddr)
         {
@@ -479,48 +405,7 @@ namespace LP.UI
 
         private void OnInsertSpaceAndTrim()
         {
-            var elements = outAddressView.Elements.ToList();
-
-            foreach (var tuple in _replacesHelperToInserSpace)
-            {
-                for (int i = 0; i < elements.Count; i++)
-                {
-                    var fixElement = elements[i];
-                    if (fixElement.Group != tuple.AddressFormatter)
-                        continue;
-
-                    int originalLength = fixElement.Value.Length;
-                    string elementValue = fixElement.Value.TrimEnd('.', ' ').Replace("«", "").Replace("»", "");
-                    bool isModify = originalLength > elementValue.Length;
-                    foreach (var replace in tuple.Replaces)
-                    {
-                        int pos = elementValue.IndexOf(replace);
-                        if (pos == -1)
-                            continue;
-
-                        int posToInsert = pos + replace.Length;
-                        if (posToInsert < elementValue.Length && elementValue[posToInsert] != ' ')
-                        {
-                            elementValue = elementValue.Insert(posToInsert, " ");
-                            isModify = true;
-                        }
-                    }
-                    if (isModify)
-                    {
-                        elements[i] = new ElementModel(tuple.AddressFormatter, elementValue, ElementSource.ManualUserSeparate);
-                    }
-                }
-            }
-
-            outAddressView.Setup(elements);
-        }
-
-        private static List<AddressFormatter> HeaderToAddress(string header)
-        {
-            //index	region	district	city	suburb	street	house_number	unit    category
-            var helperReverce = Enum.GetValues(typeof(AddressFormatter)).Cast<AddressFormatter>().ToDictionary(af => af.ToTsvString());
-            var h2a = header.Split('\t').Select(c => helperReverce[c]).ToList();
-            return h2a;
+            outAddressView.Setup(ImproveTextTools.InsertSpaceAndTrim(outAddressView.Elements));
         }
 
         private static void ReplaceButtonNormalColor(Button button, Color colorNormal, Color colorHover)
