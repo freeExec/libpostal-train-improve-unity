@@ -1,4 +1,3 @@
-using Assets.Code.Data;
 using LibPostalNet;
 using LP.Model;
 using System;
@@ -14,6 +13,7 @@ namespace LP.Data
     {
         //public static CoreProcess Instance { get; private set; }
 
+        public bool IsLibpostalSetupSuccessful { get; private set; }
         public List<AddressFormatter> HeaderOrder { get; private set; }
 
         public int CompletedLines => dataReader.CompletedLines;
@@ -57,7 +57,7 @@ namespace LP.Data
             
             Instance = this;
             DontDestroyOnLoad(Instance);*/
-            LPRecord.LibPostalSetup(Application.streamingAssetsPath);
+            IsLibpostalSetupSuccessful = LPRecord.LibPostalSetup(Application.streamingAssetsPath);
         }
 
         private void OnDestroy()

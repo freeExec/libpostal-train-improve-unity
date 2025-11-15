@@ -1,14 +1,11 @@
 ﻿using LibPostalNet;
-using LP.Data;
 using LP.Model;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Assets.Code.Data
+namespace LP.Data
 {
     public class LPRecord
     {
@@ -26,7 +23,8 @@ namespace Assets.Code.Data
         public string Line;
         public List<KeyValuePair<string, string>> ParseResult;
         public List<KeyValuePair<AddressFormatter, string>> ParseResultEnum;
-        public HashSet<string> ExpandedAddress;
+        public HashSet<string> ExpandedAddressGlobalSet;
+        public string ExpandedAddressIndividual;
 
         #region LibPostal Init
         public static bool LibPostalSetup(string rootDir)
@@ -122,11 +120,22 @@ namespace Assets.Code.Data
 
         private void FillExpandedAddress()
         {
-            ExpandedAddress = 
+            ExpandedAddressGlobalSet = 
                 libpostal.LibpostalExpandAddress(
                     string.Join(LP_SEPATARE_VBAR, ParseResultEnum.Where(c => c.Key <= AddressFormatter.Road).Select(c => c.Value)),
                     optExpand
                 ).Expansions.ToHashSet();
+
+            ExpandedAddressIndividual = string.Empty;
+            foreach (var addressComponent in ParseResultEnum)
+            {
+                optExpand.AddressComponents = (ushort)addressComponent.Key.ToLibpostalAddress();
+                var expandAddr = libpostal.LibpostalExpandAddress(addressComponent.Value, optExpand);
+
+                //int maxLength = expandAddr.Expansions.Max(e  => e.Length);
+                //expandAddrCombine += expandAddr.Expansions.First(e => e.Length == maxLength) + " ";
+                ExpandedAddressIndividual += expandAddr.Expansions.First() + " " + LP_SEPATARE_VBAR;
+            }
         }
     }
 }

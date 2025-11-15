@@ -1,15 +1,16 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using UnityEngine;
-using LibPostalNet;
-using TMPro;
+﻿using LibPostalNet;
 using LP.Data;
 using LP.Model;
-using UnityEngine.UI;
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
 
 namespace LP.UI
 {
@@ -99,14 +100,14 @@ namespace LP.UI
             _buttonInsertSpace.onClick.AddListener(OnInsertSpaceAndTrim);
 
             _trashDrop.OnDropAddressComponent += (component) => component.SetEmpty();
-            _libpostalParseDrop.OnDropAddressComponent += (component) => ShowLibpostalParse(component.Element.Value, false, false);
+            _libpostalParseDrop.OnDropAddressComponent += OnDropCustomElement; // (component) => ShowLibpostalParse(component.Element.Value, false, false);
             _editComponentDrop.OnDropAddressComponent += OnEditComponentBegin;
 
             _buttonDumpNormalColor = _buttonDump.colors.normalColor;
             _buttonDeleteNormalColor = _buttonDelete.colors.normalColor;
             _buttonDeleteHoverColor = _buttonDelete.colors.highlightedColor;
 
-            if (!_coreProcess.Setup())
+            if (_coreProcess.IsLibpostalSetupSuccessful == false)
             {
                 _messageWindow.Setup("Libpostal Init FAIL!");
                 _messageWindow.gameObject.SetActive(true);
@@ -226,7 +227,7 @@ namespace LP.UI
                     _currentLPRecord = _coreProcess.GetNextRecord();
                     if (string.IsNullOrEmpty(_currentLPRecord.Line)) break;
                     var trueComponents = FillComponents(_currentLPRecord.Line, addressView.AddressColumns);
-                    var libpostalComponents = _currentLPRecord.ConvertParseToEnum().Select(p => new ElementModel(p.Key, p.Value, ElementSource.Libpostal));
+                    var libpostalComponents = _currentLPRecord.ParseResultEnum.Select(p => new ElementModel(p.Key, p.Value, ElementSource.Libpostal));
                     isMath = trueComponents.Where(c => !c.IsEmpty).SequenceEqual(libpostalComponents, comparer);
                 } while (!isMath);
             }
@@ -239,7 +240,7 @@ namespace LP.UI
                     _currentLPRecord = _coreProcess.GetNextRecord();
                     if (string.IsNullOrEmpty(_currentLPRecord.Line)) break;
                     var trueComponents = FillComponents(_currentLPRecord.Line, addressView.AddressColumns);
-                    var libpostalComponents = _currentLPRecord.ConvertParseToEnum().Select(p => new ElementModel(p.Key, p.Value, ElementSource.Libpostal));
+                    var libpostalComponents = _currentLPRecord.ParseResultEnum.Select(p => new ElementModel(p.Key, p.Value, ElementSource.Libpostal));
                     isMath = trueComponents.Where(c => !c.IsEmpty).SequenceEqual(libpostalComponents, comparer);
                 } while (isMath);
             }
@@ -249,23 +250,24 @@ namespace LP.UI
 
         private static IEnumerable<ElementModel> FillComponents(string addrString, AddressFormatter[] addressColumns, ElementSource source = ElementSource.PreparePythonScript) =>
             addrString
-                .Split(SPLIT_SEPATARE)
+                .Split(LPRecord.SPLIT_SEPATARE_TAB)
                 .Zip(addressColumns, (value, address) =>
                     new ElementModel(address, value, ElementSource.PreparePythonScript));
 
         private void ShowCurrentAddress(bool applyNormAddr = true)
         {
-            var addressComponents = FillComponents(_currentLine, tsvAddressView.AddressColumns);
+            var addressComponents = FillComponents(_currentLPRecord.Line, tsvAddressView.AddressColumns);
             tsvAddressView.Setup(addressComponents);
 
-            ShowLibpostalParse(_currentLine, true, applyNormAddr);
+            //ShowLibpostalParse(_currentLine, true, applyNormAddr);
+            SetNormAddr(applyNormAddr);
 
             if (_copySelector.CopySelector == CopySelector.Source)
                 outAddressView.Setup(tsvAddressView.Elements.Where(e => !e.IsEmpty));
             else
                 outAddressView.Setup(postalAddressView.Elements.Where(e => !e.IsEmpty));
 
-            _counter.text = $"Completed: {_coreProcess.CompletedLines}/{_coreProcess.TotalLines} ({_coreProcess.CompletedLines / (float)_coreProcess.TotalLines:P4}) | {_coreProcess.CurrentLineIndex} | {_currentLine.Length}";
+            _counter.text = $"Completed: {_coreProcess.CompletedLines}/{_coreProcess.TotalLines} ({_coreProcess.CompletedLines / (float)_coreProcess.TotalLines:P4}) | {_coreProcess.CurrentLineIndex} | {_currentLPRecord.Line.Length}";
         }
 
         private void OnRefreshAddress()
@@ -299,7 +301,9 @@ namespace LP.UI
             var elementsMap = outAddressView.Elements.ToLookup(e => e.Group);
 
             var addrStr = string.Join(" ", _coreProcess.HeaderOrder.Select(h => string.Join(" ", elementsMap[h].Select(e => e.Value))));
-            ShowLibpostalParse(addrStr, true, false);
+            //ShowLibpostalParse(addrStr, true, false);
+            var lPRecord = new LPRecord(_currentLPRecord.LineIndex, addrStr);
+            SetNormAddr(false);
         }
 
         /*private IEnumerable<ElementModel> ParseLibpostal(string addrStr)
@@ -330,7 +334,13 @@ namespace LP.UI
             return addressComponents;
         }*/
 
-        private void ShowLibpostalParse(string addrStr, bool applyNormAddr, bool saveNormAddr)
+        private void OnDropCustomElement(AddressComponent component)
+        {
+            _currentLPRecord = new LPRecord(_currentLPRecord.LineIndex, component.Element.Value);
+            postalAddressView.Setup(_currentLPRecord.ParseResultEnum.Select(p => new ElementModel(p.Key, p.Value, ElementSource.Libpostal)));
+        }
+
+        /*private void ShowLibpostalParse(string addrStr, bool applyNormAddr, bool saveNormAddr)
         {
             var addrStrNoTab = addrStr.Replace('\t', ' ');
             var addressComponents = ParseLibpostal(addrStrNoTab);
@@ -341,24 +351,16 @@ namespace LP.UI
             {
                 SetNormAddr(saveNormAddr, addressComponents);
             }
+        }*/
 
-            /*int levensh = -1;
-            int minLength = Mathf.Min(_lastNormAddr.text.Length, _normAddr.text.Length);
-            if (minLength == 0)
-            { }
-            else if (minLength > 25)
-                levensh = EditDistance.DamerauLevenshteinDistance(_lastNormAddr.text.Substring(0, minLength), _normAddr.text.Substring(0, minLength), 8);
-            else
-                levensh = EditDistance.DamerauLevenshteinDistance(_lastNormAddr.text, _normAddr.text, 8);
-
-            ReplaceButtonNormalColor(_buttonDelete, (levensh >= 0) ? _warningColor : _buttonDeleteNormalColor,
-                                                    (levensh >= 0) ? _warningColor : _buttonDeleteHoverColor);*/
+        private void SetSimirarStatus()
+        {
             bool similar = prevExpandedAddr is not null && prevExpandedAddr.Overlaps(currentExpandedAddr);
             ReplaceButtonNormalColor(_buttonDelete, similar ? _warningColor : _buttonDeleteNormalColor,
                                                     similar ? _warningColor : _buttonDeleteHoverColor);
         }
 
-        private void SetNormAddr(bool saveNormAddr, IEnumerable<ElementModel> addressComponents)
+        private void SetNormAddr(bool saveNormAddr)
         {
             if (saveNormAddr)
             {
@@ -366,24 +368,8 @@ namespace LP.UI
                 _lastNormAddr.text = _normAddr.text;
             }
 
-            string expandAddrCombine = string.Empty;
-            foreach (ElementModel addressComponent in addressComponents)
-            {
-                optExpand.AddressComponents = (ushort)addressComponent.Group.ToLibpostalAddress();
-                var expandAddr = libpostal.LibpostalExpandAddress(addressComponent.Value, optExpand);
-
-                //int maxLength = expandAddr.Expansions.Max(e  => e.Length);
-                //expandAddrCombine += expandAddr.Expansions.First(e => e.Length == maxLength) + " ";
-                expandAddrCombine += expandAddr.Expansions.First() + " ";
-            }
-
-            currentExpandedAddr =
-                libpostal.LibpostalExpandAddress(
-                    string.Join(", ", addressComponents.Where(c => c.Group <= AddressFormatter.Road).Select(c => c.Value)),
-                    optExpand
-                ).Expansions.ToHashSet();
-
-            _normAddr.text = expandAddrCombine;
+            currentExpandedAddr = _currentLPRecord.ExpandedAddressGlobalSet;
+            _normAddr.text = _currentLPRecord.ExpandedAddressIndividual;
         }
 
         private void OnEditComponentBegin(AddressComponent component)
