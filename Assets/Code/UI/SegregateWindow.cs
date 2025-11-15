@@ -38,6 +38,7 @@ namespace LP.UI
         [SerializeField] Button _buttonDumpReady = default;
         [SerializeField] Button _buttonTestLibpostal = default;
         [SerializeField] Button _buttonInsertSpace = default;
+        [SerializeField] Button _buttonTestAll = default;
 
         [Header("Toggles")]
         [SerializeField] Toggle _useNextRecord = default;
@@ -63,6 +64,8 @@ namespace LP.UI
 
         [SerializeField] DefaultCopySelector _copySelector = default;
 
+        [SerializeField] TestAllRecordsButton _testAllRecords = default;
+
         [Header("Colours")]
         [SerializeField] Color _warningColor = Color.red;
 
@@ -76,7 +79,6 @@ namespace LP.UI
 
         private HashSet<string> prevExpandedAddr;
         private HashSet<string> currentExpandedAddr;
-
 
         private bool Waiting
         {
@@ -98,6 +100,7 @@ namespace LP.UI
             _buttonDumpReady.onClick.AddListener(DumpReadyProgress);
             _buttonTestLibpostal.onClick.AddListener(TestOutOnLibpostal);
             _buttonInsertSpace.onClick.AddListener(OnInsertSpaceAndTrim);
+            _buttonTestAll.onClick.AddListener(OnTestAllLines);
 
             _trashDrop.OnDropAddressComponent += (component) => component.SetEmpty();
             _libpostalParseDrop.OnDropAddressComponent += OnDropCustomElement; // (component) => ShowLibpostalParse(component.Element.Value, false, false);
@@ -126,7 +129,7 @@ namespace LP.UI
         private void SelectFileFill()
         {
             var options = new List<TMP_Dropdown.OptionData>();
-            foreach (var fileTsv in Directory.EnumerateFiles(_coreProcess.ValidateDataPath, FILE_MASK_TSV))
+            foreach (var fileTsv in Directory.EnumerateFiles(CoreProcess.ValidateDataPath, FILE_MASK_TSV))
             {
                 if (fileTsv.EndsWith(FILE_COMPLITED_TSV)) continue;
                 options.Add(new TMP_Dropdown.OptionData(Path.GetFileNameWithoutExtension(fileTsv)));
@@ -220,7 +223,7 @@ namespace LP.UI
                 _currentLPRecord = _coreProcess.GetNextRecordByRandom();
             else if (_useNextMathRecord.isOn)
             {
-                bool isMath = false;
+                bool isMatch = false;
                 var comparer = new ElementModelMatchComparer();
                 do
                 {
@@ -228,12 +231,12 @@ namespace LP.UI
                     if (string.IsNullOrEmpty(_currentLPRecord.Line)) break;
                     var trueComponents = FillComponents(_currentLPRecord.Line, addressView.AddressColumns);
                     var libpostalComponents = _currentLPRecord.ParseResultEnum.Select(p => new ElementModel(p.Key, p.Value, ElementSource.Libpostal));
-                    isMath = trueComponents.Where(c => !c.IsEmpty).SequenceEqual(libpostalComponents, comparer);
-                } while (!isMath);
+                    isMatch = trueComponents.Where(c => !c.IsEmpty).SequenceEqual(libpostalComponents, comparer);
+                } while (!isMatch);
             }
             else if (_useNextDifferentRecord.isOn)
             {
-                bool isMath = false;
+                bool isMatch = false;
                 var comparer = new ElementModelMatchComparer();
                 do
                 {
@@ -241,8 +244,8 @@ namespace LP.UI
                     if (string.IsNullOrEmpty(_currentLPRecord.Line)) break;
                     var trueComponents = FillComponents(_currentLPRecord.Line, addressView.AddressColumns);
                     var libpostalComponents = _currentLPRecord.ParseResultEnum.Select(p => new ElementModel(p.Key, p.Value, ElementSource.Libpostal));
-                    isMath = trueComponents.Where(c => !c.IsEmpty).SequenceEqual(libpostalComponents, comparer);
-                } while (isMath);
+                    isMatch = trueComponents.Where(c => !c.IsEmpty).SequenceEqual(libpostalComponents, comparer);
+                } while (isMatch);
             }
             else
                 _currentLPRecord = _coreProcess.GetNextRecord();
@@ -364,6 +367,12 @@ namespace LP.UI
         private void OnInsertSpaceAndTrim()
         {
             outAddressView.Setup(ImproveTextTools.InsertSpaceAndTrim(outAddressView.Elements));
+        }
+
+        private void OnTestAllLines()
+        {
+            var filename = _selectFile.options[_selectFile.value].text;
+            _testAllRecords.Process(filename);
         }
 
         private static void ReplaceButtonNormalColor(Button button, Color colorNormal, Color colorHover)

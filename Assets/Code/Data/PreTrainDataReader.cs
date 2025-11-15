@@ -247,6 +247,8 @@ namespace LP.Data
                 CompletedLines++;
         }
 
+        public string GetRecord(int indexLine) => _originalLines[indexLine];
+
         public string GetNextRecord()
         {
             int index = _currentOriginalIndex;

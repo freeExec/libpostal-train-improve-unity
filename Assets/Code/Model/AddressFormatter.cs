@@ -88,5 +88,13 @@ namespace LP.Model
                 _ => throw new NotImplementedException(formatter.ToString())
             };
         }
+
+        public static List<AddressFormatter> HeaderToAddress(string header)
+        {
+            //index	region	district	city	suburb	street	house_number	unit    category
+            var helperReverce = Enum.GetValues(typeof(AddressFormatter)).Cast<AddressFormatter>().ToDictionary(af => af.ToTsvString());
+            var h2a = header.Split('\t').Select(c => helperReverce[c]).ToList();
+            return h2a;
+        }
     }
 }

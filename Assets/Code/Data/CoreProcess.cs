@@ -1,5 +1,6 @@
 using LibPostalNet;
 using LP.Model;
+using LP.UI;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,6 +14,8 @@ namespace LP.Data
     {
         //public static CoreProcess Instance { get; private set; }
 
+        [SerializeField] private MessageWindow _messageWindow;
+
         public bool IsLibpostalSetupSuccessful { get; private set; }
         public List<AddressFormatter> HeaderOrder { get; private set; }
 
@@ -25,7 +28,7 @@ namespace LP.Data
 
 
 
-        public string ValidateDataPath
+        public static string ValidateDataPath
         {
             get
             {
@@ -68,7 +71,7 @@ namespace LP.Data
         public async Task LoadFileAsync(string filename)
         {
             await Task.Run(() => dataReader = new PreTrainDataReader(ValidateDataPath, filename));
-            HeaderOrder = HeaderToAddress(dataReader.Header);
+            HeaderOrder = AddressFormatterHelper.HeaderToAddress(dataReader.Header);
         }
 
         public async Task SaveTsvPreTrainDataAsync()
@@ -94,17 +97,5 @@ namespace LP.Data
             var line = getNexrRexort();
             return new LPRecord(dataReader.CurrentLineIndex, line);
         }
-
-        private static List<AddressFormatter> HeaderToAddress(string header)
-        {
-            //index	region	district	city	suburb	street	house_number	unit    category
-            var helperReverce = Enum.GetValues(typeof(AddressFormatter)).Cast<AddressFormatter>().ToDictionary(af => af.ToTsvString());
-            var h2a = header.Split('\t').Select(c => helperReverce[c]).ToList();
-            return h2a;
-        }
-
-        
-    }
-
-    
+    }    
 }
