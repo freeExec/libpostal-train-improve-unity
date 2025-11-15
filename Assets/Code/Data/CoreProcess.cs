@@ -25,10 +25,7 @@ namespace LP.Data
 
         private PreTrainDataReader dataReader;
 
-
-
-
-        public static string ValidateDataPath
+        public string ValidateDataPath
         {
             get
             {

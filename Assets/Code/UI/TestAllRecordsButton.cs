@@ -3,6 +3,7 @@ using LP.Model;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -14,25 +15,36 @@ namespace LP.UI
     {
         [SerializeField] ProgressBarGradientColor progressAll;
         [SerializeField] ProgressBarGradientColor progressCompleted;
+        [SerializeField] CanvasGroup progressCanvas;
 
         private PreTrainDataReader dataReader;
+        private AwaitableCompletionSource awatingSource;
 
-        public async void Process(string filename)
+        public async void Process(string dataPath, string filename)
         {
-            await Task.Run(() => dataReader = new PreTrainDataReader(CoreProcess.ValidateDataPath, filename));
+            progressCanvas.alpha = 1;
+            await Task.Yield();
 
-            StartCoroutine(PrecessCo());
+            var filenameComplete = Path.GetFileNameWithoutExtension(filename) + "_complete" + Path.GetExtension(filename);
+            await Task.Run(() => dataReader = new PreTrainDataReader(dataPath, filenameComplete));
+            StartCoroutine(PrecessCo(progressCompleted));
+            await awatingSource.Awaitable;
+
+            await Task.Run(() => dataReader = new PreTrainDataReader(dataPath, filename));
+            StartCoroutine(PrecessCo(progressAll));
         }
 
-        private IEnumerator PrecessCo()
+        private IEnumerator PrecessCo(ProgressBarGradientColor progress)
         {
-            int currentLineIndex = 1;   // skip header
+            awatingSource = new AwaitableCompletionSource();
+
             var addressColumns = AddressFormatterHelper.HeaderToAddress(dataReader.Header);
             var comparer = new ElementModelMatchComparer();
 
             int matchLines = 0;
 
-            while (true)
+            // skip header
+            for (int currentLineIndex = 1; currentLineIndex <= dataReader.TotalLines; currentLineIndex++)
             {
                 var line = dataReader.GetRecord(currentLineIndex);
                 var lprecord = new LPRecord(currentLineIndex, line);
@@ -48,14 +60,18 @@ namespace LP.UI
                 if (isMatch)
                     matchLines++;
 
-                currentLineIndex++;
-
-                if (currentLineIndex % 10 == 0 && currentLineIndex > 0)
+                if (currentLineIndex % 1000 == 0 && currentLineIndex > 0 || currentLineIndex == dataReader.TotalLines)
                 {
-                    progressAll.Value = (float)currentLineIndex / dataReader.TotalLines;
+                    progress.Value = (float)matchLines / dataReader.TotalLines;
+                    progress.SetLabel($"{progress.Value :P2} | {matchLines} | {(float)currentLineIndex / dataReader.TotalLines :P2}");
+
+                    //print($"{currentLineIndex}, {dataReader.TotalLines} => {line}");
                     yield return null;
                 }
             }
+
+            dataReader = null;
+            awatingSource.SetResult();
         }
     }
 }

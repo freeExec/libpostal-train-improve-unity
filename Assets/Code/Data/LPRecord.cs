@@ -135,9 +135,12 @@ namespace LP.Data
                 optExpand.AddressComponents = (ushort)addressComponent.Key.ToLibpostalAddress();
                 var expandAddr = libpostal.LibpostalExpandAddress(addressComponent.Value, optExpand);
 
-                //int maxLength = expandAddr.Expansions.Max(e  => e.Length);
-                //expandAddrCombine += expandAddr.Expansions.First(e => e.Length == maxLength) + " ";
-                ExpandedAddressIndividual += expandAddr.Expansions.First() + LP_SEPATARE_SEMI + " ";
+                if (expandAddr.Expansions.Length > 0)
+                {
+                    //int maxLength = expandAddr.Expansions.Max(e  => e.Length);
+                    //expandAddrCombine += expandAddr.Expansions.First(e => e.Length == maxLength) + " ";
+                    ExpandedAddressIndividual += expandAddr.Expansions.First() + LP_SEPATARE_SEMI + " ";
+                }
             }
         }
     }

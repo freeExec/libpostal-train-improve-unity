@@ -22,5 +22,7 @@ namespace LP.UI
                 label.text = string.Format(textFormat, value);
             }
         }
+
+        public void SetLabel(string text) => label.text = text;
     }
 }

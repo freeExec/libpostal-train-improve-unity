@@ -21,6 +21,7 @@ namespace LP.Model
         Level,
         Unit,
         Category,
+        CountryRegion,
     }
 
     public static class AddressFormatterHelper
@@ -30,6 +31,7 @@ namespace LP.Model
             { AddressFormatter.NotSet,          "NONE_NULL"     },
             { AddressFormatter.PostCode,        "index"         },
             { AddressFormatter.Country,         "country"       },
+            { AddressFormatter.CountryRegion,   "country_region"       },
             { AddressFormatter.State,           "region"        },
             { AddressFormatter.StateDisctrict,  "district"      },
             { AddressFormatter.City,            "city"          },
@@ -47,6 +49,7 @@ namespace LP.Model
             { "NONE_NULL",      AddressFormatter.NotSet         },
             { "postcode",       AddressFormatter.PostCode       },
             { "country",        AddressFormatter.Country        },
+            { "country_region", AddressFormatter.Country        },
             { "state",          AddressFormatter.State          },
             { "state_district", AddressFormatter.StateDisctrict },
             { "city",           AddressFormatter.City           },

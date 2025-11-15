@@ -129,7 +129,7 @@ namespace LP.UI
         private void SelectFileFill()
         {
             var options = new List<TMP_Dropdown.OptionData>();
-            foreach (var fileTsv in Directory.EnumerateFiles(CoreProcess.ValidateDataPath, FILE_MASK_TSV))
+            foreach (var fileTsv in Directory.EnumerateFiles(_coreProcess.ValidateDataPath, FILE_MASK_TSV))
             {
                 if (fileTsv.EndsWith(FILE_COMPLITED_TSV)) continue;
                 options.Add(new TMP_Dropdown.OptionData(Path.GetFileNameWithoutExtension(fileTsv)));
@@ -372,7 +372,7 @@ namespace LP.UI
         private void OnTestAllLines()
         {
             var filename = _selectFile.options[_selectFile.value].text;
-            _testAllRecords.Process(filename);
+            _testAllRecords.Process(_coreProcess.ValidateDataPath, filename);
         }
 
         private static void ReplaceButtonNormalColor(Button button, Color colorNormal, Color colorHover)
