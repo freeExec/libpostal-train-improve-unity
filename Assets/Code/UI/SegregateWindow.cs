@@ -77,6 +77,9 @@ namespace LP.UI
         private Color _buttonDeleteNormalColor;
         private Color _buttonDeleteHoverColor;
 
+        private HashSet<string> prevExpandedAddr;
+        private HashSet<string> currentExpandedAddr;
+
         private string ValidateDataPath
         {
             get
@@ -215,7 +218,7 @@ namespace LP.UI
                 _proccessedCount = 0;
                 return;
             }
-            
+
             LoadSelectedFileAsync();
         }
 
@@ -414,7 +417,7 @@ namespace LP.UI
                 SetNormAddr(saveNormAddr, addressComponents);
             }
 
-            int levensh = -1;
+            /*int levensh = -1;
             int minLength = Mathf.Min(_lastNormAddr.text.Length, _normAddr.text.Length);
             if (minLength == 0)
             { }
@@ -424,13 +427,19 @@ namespace LP.UI
                 levensh = EditDistance.DamerauLevenshteinDistance(_lastNormAddr.text, _normAddr.text, 8);
 
             ReplaceButtonNormalColor(_buttonDelete, (levensh >= 0) ? _warningColor : _buttonDeleteNormalColor,
-                                                    (levensh >= 0) ? _warningColor : _buttonDeleteHoverColor);
+                                                    (levensh >= 0) ? _warningColor : _buttonDeleteHoverColor);*/
+            bool similar = prevExpandedAddr is not null && prevExpandedAddr.Overlaps(currentExpandedAddr);
+            ReplaceButtonNormalColor(_buttonDelete, similar ? _warningColor : _buttonDeleteNormalColor,
+                                                    similar ? _warningColor : _buttonDeleteHoverColor);
         }
 
         private void SetNormAddr(bool saveNormAddr, IEnumerable<ElementModel> addressComponents)
         {
             if (saveNormAddr)
+            {
+                prevExpandedAddr = currentExpandedAddr;
                 _lastNormAddr.text = _normAddr.text;
+            }
 
             string expandAddrCombine = string.Empty;
             foreach (ElementModel addressComponent in addressComponents)
@@ -442,6 +451,12 @@ namespace LP.UI
                 //expandAddrCombine += expandAddr.Expansions.First(e => e.Length == maxLength) + " ";
                 expandAddrCombine += expandAddr.Expansions.First() + " ";
             }
+
+            currentExpandedAddr =
+                libpostal.LibpostalExpandAddress(
+                    string.Join(", ", addressComponents.Where(c => c.Group <= AddressFormatter.Road).Select(c => c.Value)),
+                    optExpand
+                ).Expansions.ToHashSet();
 
             _normAddr.text = expandAddrCombine;
         }
