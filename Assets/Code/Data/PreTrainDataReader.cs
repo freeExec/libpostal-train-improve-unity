@@ -65,7 +65,7 @@ namespace LP.Data
         public string Header => _originalLines[0];
         public int CompletedLines { get; private set; }
         public int TotalLines => _originalLines.Length - 1; // за вычетом строки-заголовка
-        public int CurrentLine => _currentOriginalIndex;
+        public int CurrentLineIndex => _currentOriginalIndex;
 
         public PreTrainDataReader(string storePath, string filenameWithoutExtension)
         {

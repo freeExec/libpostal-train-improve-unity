@@ -10,4 +10,4 @@ Assets/Plugins/Libpostal/x64*
 .tsv*
 Temp/
 lp-train-verification*
-Data/
+/Data/
