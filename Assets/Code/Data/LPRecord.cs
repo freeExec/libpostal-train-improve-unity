@@ -13,7 +13,7 @@ namespace LP.Data
 
         public const char LP_SEPATARE_SPACE = ' ';
         public const char LP_SEPATARE_SEMI = ',';
-        public const char LP_SEPATARE_VBAR = '|';
+        public const char LP_SEPATARE_VBAR = '|';   // для склейки не работает
 
         private static LibpostalNormalizeOptions optExpand;
         private static LibpostalAddressParserOptions parseOpt;
@@ -25,6 +25,8 @@ namespace LP.Data
         public List<KeyValuePair<AddressFormatter, string>> ParseResultEnum;
         public HashSet<string> ExpandedAddressGlobalSet;
         public string ExpandedAddressIndividual;
+
+        private string lineLowerNoSemi;
 
         #region LibPostal Init
         public static bool LibPostalSetup(string rootDir)
@@ -94,7 +96,7 @@ namespace LP.Data
 
         private void FillParseLibpostal()
         {
-            var addrStrNoTab = Line.Replace(SPLIT_SEPATARE_TAB, LP_SEPATARE_VBAR);
+            var addrStrNoTab = Line.Replace(SPLIT_SEPATARE_TAB, LP_SEPATARE_SEMI);
             var parse = libpostal.LibpostalParseAddress(addrStrNoTab.Trim(), parseOpt);
 
             ParseResult = parse.Results;
@@ -102,6 +104,7 @@ namespace LP.Data
 
         private void FillConvertedParseToEnum()
         {
+            lineLowerNoSemi = Line.ToLowerInvariant().Replace(LP_SEPATARE_SEMI, LP_SEPATARE_SPACE);
             ParseResultEnum = 
                 ParseResult.Select(r =>
                     new KeyValuePair<AddressFormatter, string>(AddressFormatterHelper.GetFormatterFromLibpostal(r.Key), RecoveryCase(r.Value))
@@ -110,7 +113,7 @@ namespace LP.Data
 
         private string RecoveryCase(string libpostalAnsverElement)
         {
-            int found = Line.IndexOf(libpostalAnsverElement);
+            int found = lineLowerNoSemi.IndexOf(libpostalAnsverElement);
             if (found != -1)
             {
                 return Line.Substring(found, libpostalAnsverElement.Length);
@@ -122,7 +125,7 @@ namespace LP.Data
         {
             ExpandedAddressGlobalSet = 
                 libpostal.LibpostalExpandAddress(
-                    string.Join(LP_SEPATARE_VBAR, ParseResultEnum.Where(c => c.Key <= AddressFormatter.Road).Select(c => c.Value)),
+                    string.Join(LP_SEPATARE_SEMI, ParseResultEnum.Where(c => c.Key <= AddressFormatter.Road).Select(c => c.Value)),
                     optExpand
                 ).Expansions.ToHashSet();
 
@@ -134,7 +137,7 @@ namespace LP.Data
 
                 //int maxLength = expandAddr.Expansions.Max(e  => e.Length);
                 //expandAddrCombine += expandAddr.Expansions.First(e => e.Length == maxLength) + " ";
-                ExpandedAddressIndividual += expandAddr.Expansions.First() + " " + LP_SEPATARE_VBAR;
+                ExpandedAddressIndividual += expandAddr.Expansions.First() + LP_SEPATARE_SEMI + " ";
             }
         }
     }

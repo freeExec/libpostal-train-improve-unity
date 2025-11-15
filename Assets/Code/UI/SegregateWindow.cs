@@ -254,13 +254,14 @@ namespace LP.UI
                 .Zip(addressColumns, (value, address) =>
                     new ElementModel(address, value, ElementSource.PreparePythonScript));
 
-        private void ShowCurrentAddress(bool applyNormAddr = true)
+        private void ShowCurrentAddress(bool saveNormAddr = true)
         {
             var addressComponents = FillComponents(_currentLPRecord.Line, tsvAddressView.AddressColumns);
             tsvAddressView.Setup(addressComponents);
 
             //ShowLibpostalParse(_currentLine, true, applyNormAddr);
-            SetNormAddr(applyNormAddr);
+            postalAddressView.Setup(_currentLPRecord.ParseResultEnum.Select(p => new ElementModel(p.Key, p.Value, ElementSource.Libpostal)));
+            SetNormAddr(saveNormAddr);
 
             if (_copySelector.CopySelector == CopySelector.Source)
                 outAddressView.Setup(tsvAddressView.Elements.Where(e => !e.IsEmpty));
@@ -305,34 +306,6 @@ namespace LP.UI
             var lPRecord = new LPRecord(_currentLPRecord.LineIndex, addrStr);
             SetNormAddr(false);
         }
-
-        /*private IEnumerable<ElementModel> ParseLibpostal(string addrStr)
-        {
-            var addrStrNoTab = addrStr.Replace('\t', ' ');
-
-            var parse = libpostal.LibpostalParseAddress(addrStrNoTab.Trim(), parseOpt);
-
-            var addrStrLow = addrStrNoTab.ToLowerInvariant().Replace(',', ' ');
-
-            Func<string, string> recoveryCase = (libpostalAnsver) =>
-            {
-                int found = addrStrLow.IndexOf(libpostalAnsver);
-                if (found != -1)
-                {
-                    return addrStr.Substring(found, libpostalAnsver.Length);
-                }
-                return libpostalAnsver;
-            };
-
-            var addressComponents = parse.Results
-                .Select(r => new ElementModel(
-                    AddressFormatterHelper.GetFormatterFromLibpostal(r.Key),
-                    recoveryCase(r.Value),
-                    ElementSource.Libpostal
-                ));
-
-            return addressComponents;
-        }*/
 
         private void OnDropCustomElement(AddressComponent component)
         {
