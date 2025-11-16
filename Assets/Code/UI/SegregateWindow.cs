@@ -325,7 +325,7 @@ namespace LP.UI
         private static bool IsMatchTsvAndLibpostal(LPRecord record, AddressFormatter[] headerOrder)
         {
             if (string.IsNullOrEmpty(record.Line)) return false;
-            var trueComponents = FillComponents(record.Line, headerOrder);
+            var trueComponents = FillComponents(record.Line.Replace(LPRecord.LP_SEPATARE_SEMI, LPRecord.LP_SEPATARE_SPACE), headerOrder);
             var libpostalComponents = record.ParseResultEnum.Select(p => new ElementModel(p.Key, p.Value, ElementSource.Libpostal));
             return trueComponents.Where(c => !c.IsEmpty).SequenceEqual(libpostalComponents, ElementModelMatchComparer);
         }
