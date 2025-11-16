@@ -18,6 +18,7 @@ namespace LP.UI
     public class SegregateWindow : MonoBehaviour
     {
         private const int WARNING_NEED_DUMP = 15;
+        private const int ITER_NEXT_RECORD_PER_FRAME = 250;
 
         [SerializeField] CoreProcess _coreProcess = default;
 
@@ -236,11 +237,23 @@ namespace LP.UI
             bool isMatch = false;
             do
             {
-                SetNextAddress(_coreProcess.HeaderOrder);
+                //SetNextAddress(_coreProcess.HeaderOrder); // Mode = NextMatch
+                int tryFindCounter = 1;
+                do
+                {
+                    _currentLPRecord = _coreProcess.GetNextRecord();
+                    if (_currentLPRecord.IsEmpty) break;
+                    isMatch = IsMatchTsvAndLibpostal(_currentLPRecord, _coreProcess.HeaderOrder);
+
+                    if (tryFindCounter % ITER_NEXT_RECORD_PER_FRAME == 0)
+                        yield return null;
+
+                    tryFindCounter++;
+                } while (!isMatch);
+
                 if (_currentLPRecord.IsEmpty)
                     break;
 
-                isMatch = IsMatchTsvAndLibpostal(_currentLPRecord, _coreProcess.HeaderOrder);
                 if (isMatch)
                 {
                     ShowCurrentAddress();
@@ -248,7 +261,8 @@ namespace LP.UI
                     _proccessedCount++;
                 }
 
-                yield return null;
+                if (_proccessedCount % ITER_NEXT_RECORD_PER_FRAME == 0)
+                    yield return null;
 
             } while (isMatch);
 
@@ -273,7 +287,6 @@ namespace LP.UI
             else if (_useNextMathRecord.isOn)
             {
                 bool isMatch = false;
-                var comparer = new ElementModelMatchComparer();
                 do
                 {
                     _currentLPRecord = _coreProcess.GetNextRecord();
@@ -284,7 +297,6 @@ namespace LP.UI
             else if (_useNextDifferentRecord.isOn)
             {
                 bool isMatch = false;
-                var comparer = new ElementModelMatchComparer();
                 do
                 {
                     _currentLPRecord = _coreProcess.GetNextRecord();
