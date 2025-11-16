@@ -61,7 +61,7 @@ namespace LP.Data
             optExpand.Decompose = false;
 
             optExpand.Transliterate = false;
-            optExpand.Lowercase = false;
+            optExpand.Lowercase = true;
 
             //optExpand.DeleteAcronymPeriods = false;       // удалять сокращения??
             //optExpand.DeleteNumericHyphens = false;       // удалять числовые дефисы
