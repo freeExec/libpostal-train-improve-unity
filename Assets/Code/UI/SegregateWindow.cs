@@ -96,7 +96,7 @@ namespace LP.UI
 
         private void Start()
         {
-            Application.targetFrameRate = 15;
+            Application.targetFrameRate = 30;
 
             _selectFile.onValueChanged.AddListener(OnFileSelectedHandler);
             SelectFileFill();
