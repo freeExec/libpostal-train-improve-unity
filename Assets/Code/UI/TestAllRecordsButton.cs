@@ -62,7 +62,7 @@ namespace LP.UI
 
                 if (currentLineIndex % 1000 == 0 && currentLineIndex > 0 || currentLineIndex == dataReader.TotalLines)
                 {
-                    progress.Value = (float)matchLines / dataReader.TotalLines;
+                    progress.Value = (float)matchLines / currentLineIndex;
                     progress.SetLabel($"{progress.Value :P2} | {matchLines} | {(float)currentLineIndex / dataReader.TotalLines :P2}");
 
                     //print($"{currentLineIndex}, {dataReader.TotalLines} => {line}");
