@@ -79,7 +79,10 @@ namespace LP.Data
 
         private void ReadTsvPreTrainData()
         {
-            _originalLines = File.ReadAllLines(_preTrainDataFilePath);
+            if (File.Exists(_preTrainDataFilePath))
+                _originalLines = File.ReadAllLines(_preTrainDataFilePath);
+            else
+                _originalLines = new string[0];
 
             if (File.Exists(_completeBitMapFilePath))
             {
@@ -95,7 +98,7 @@ namespace LP.Data
             {
                 _bitMap = new BitMap(_originalLines.Length);
             }
-                _bitMap[0] = true;  // header
+            _bitMap[0] = true;  // header
             //TestRemoveDublicateMap();
             CleanAndPrepare();
             //TestRemoveDublicateMap();

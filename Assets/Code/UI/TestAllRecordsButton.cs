@@ -22,7 +22,7 @@ namespace LP.UI
         private CancellationTokenSource cancellationProcessToken;
         private AwaitableCompletionSource awatingSource;
 
-        public bool IsProcessing => awatingSource is not null;
+        public bool IsProcessing => cancellationProcessToken is not null;
 
         public async void Process(string dataPath, string filename)
         {
@@ -31,16 +31,14 @@ namespace LP.UI
             progressCanvas.alpha = 1;
             await Task.Yield();
 
-            var filenameComplete = Path.GetFileNameWithoutExtension(filename) + "_complete" + Path.GetExtension(filename);
-            if (File.Exists(filenameComplete))
+            var filenameComplete = Path.GetFileNameWithoutExtension(filename) + "_complete";
+            await Task.Run(() => dataReader = new PreTrainDataReader(dataPath, filenameComplete), cancellationProcessToken.Token);
+            if (cancellationProcessToken.IsCancellationRequested == false)
             {
-                await Task.Run(() => dataReader = new PreTrainDataReader(dataPath, filenameComplete), cancellationProcessToken.Token);
-                if (cancellationProcessToken.IsCancellationRequested == false)
-                {
-                    StartCoroutine(PrecessCo(progressCompleted));
-                    await awatingSource.Awaitable;
-                }
+                StartCoroutine(PrecessCo(progressCompleted));
+                await awatingSource.Awaitable;
             }
+
             if (cancellationProcessToken.IsCancellationRequested == false)
             {
                 await Task.Run(() => dataReader = new PreTrainDataReader(dataPath, filename), cancellationProcessToken.Token);
@@ -59,6 +57,8 @@ namespace LP.UI
         {
             //progressCanvas.alpha = 0;
             cancellationProcessToken?.Cancel();
+            cancellationProcessToken?.Dispose();
+            cancellationProcessToken = null;
         }
 
         private IEnumerator PrecessCo(ProgressBarGradientColor progress)

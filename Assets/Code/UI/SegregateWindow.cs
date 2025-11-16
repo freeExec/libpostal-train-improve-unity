@@ -452,12 +452,25 @@ namespace LP.UI
         private void OnTestAllLines()
         {
             var filename = _selectFile.options[_selectFile.value].text;
-            if (_testAllRecords.IsProcessing)
+            _testAllRecords.Process(_coreProcess.ValidateDataPath, filename);
+            StartCoroutine(WaitTestAllLineCoro());
+        }
+
+        private IEnumerator WaitTestAllLineCoro()
+        {
+            var cts = new CancellationTokenSource();
+            _waitWithCancel.Show(cts);
+            while (true)
             {
-                _testAllRecords.ProcessStop();
+                yield return new WaitForSeconds(0.3f);
+                
+                if (cts.IsCancellationRequested)
+                    _testAllRecords.ProcessStop();
+                
+                if (_testAllRecords.IsProcessing == false)
+                    break;
             }
-            else
-                _testAllRecords.Process(_coreProcess.ValidateDataPath, filename);
+            _waitWithCancel.Hide();
         }
 
         private static void ReplaceButtonNormalColor(Button button, Color colorNormal, Color colorHover)
