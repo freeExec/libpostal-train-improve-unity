@@ -8,6 +8,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
@@ -54,6 +55,7 @@ namespace LP.UI
         [SerializeField] Toggle _autoApprovalRecord = default;
 
         [SerializeField] GameObject _waiterView = default;
+        [SerializeField] BlockerWithCancel _waitWithCancel = default;
 
         [SerializeField] EditComponentWindow _editComponentWindow = default;
 
@@ -234,6 +236,9 @@ namespace LP.UI
 
         private IEnumerator OnAutoApprovalNextRecord()
         {
+            CancellationTokenSource cts = new CancellationTokenSource();
+            _waitWithCancel.Show(cts);
+
             bool isMatch = false;
             do
             {
@@ -248,8 +253,14 @@ namespace LP.UI
                     if (tryFindCounter % ITER_NEXT_RECORD_PER_FRAME == 0)
                         yield return null;
 
+                    if (cts.IsCancellationRequested)
+                        break;
+
                     tryFindCounter++;
                 } while (!isMatch);
+
+                if (cts.IsCancellationRequested)
+                    break;
 
                 if (_currentLPRecord.IsEmpty)
                     break;
@@ -274,6 +285,8 @@ namespace LP.UI
             {
                 ReplaceButtonNormalColor(_buttonDump, _warningColor, Color.black);
             }
+
+            _waitWithCancel.Hide();
         }
 
         private void SetNextAddress(AddressFormatter[] headerOrder)
