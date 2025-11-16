@@ -128,12 +128,15 @@ namespace LP.Data
 
         private void FillExpandedAddress()
         {
+            // Почему-то если разделять запятой, то он склеивает некоторые слова
+            // Хрень какая-то при `164840 Архангельская область Онега пр. Ленина`, при одном запросе 4 ответа и раскрытие сокращения
+            // при повтроном только 3 и нет раскрытия
             ExpandedAddressGlobalSet = 
                 libpostal.LibpostalExpandAddress(
-                    string.Join(LP_SEPATARE_SEMI, ParseResultEnum.Where(c => c.Key <= AddressFormatter.Road).Select(c => c.Value)),
+                    string.Join(LP_SEPATARE_SPACE, ParseResultEnum.Where(c => c.Key <= AddressFormatter.Road).Select(c => c.Value)),
                     optExpand
                 ).Expansions.ToHashSet();
-
+            
             ExpandedAddressIndividual = string.Empty;
             foreach (var addressComponent in ParseResultEnum)
             {
