@@ -27,6 +27,8 @@ namespace LP.Data
         public HashSet<string> ExpandedAddressGlobalSet;
         public string ExpandedAddressIndividual;
 
+        public bool IsEmpty => string.IsNullOrWhiteSpace(Line);
+
         private string lineLowerNoSemi;
 
         #region LibPostal Init

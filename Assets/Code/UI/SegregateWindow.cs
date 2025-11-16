@@ -237,6 +237,9 @@ namespace LP.UI
             do
             {
                 SetNextAddress(_coreProcess.HeaderOrder);
+                if (_currentLPRecord.IsEmpty)
+                    break;
+
                 isMatch = IsMatchTsvAndLibpostal(_currentLPRecord, _coreProcess.HeaderOrder);
                 if (isMatch)
                 {
@@ -274,6 +277,7 @@ namespace LP.UI
                 do
                 {
                     _currentLPRecord = _coreProcess.GetNextRecord();
+                    if (_currentLPRecord.IsEmpty) break;
                     isMatch = IsMatchTsvAndLibpostal(_currentLPRecord, _coreProcess.HeaderOrder);
                 } while (!isMatch);
             }
@@ -284,6 +288,7 @@ namespace LP.UI
                 do
                 {
                     _currentLPRecord = _coreProcess.GetNextRecord();
+                    if (_currentLPRecord.IsEmpty) break;
                     isMatch = IsMatchTsvAndLibpostal(_currentLPRecord, _coreProcess.HeaderOrder);
                 } while (isMatch);
             }
