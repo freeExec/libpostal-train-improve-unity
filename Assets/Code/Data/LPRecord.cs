@@ -2,6 +2,7 @@
 using LP.Model;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -116,7 +117,9 @@ namespace LP.Data
             int found = lineLowerNoSemi.IndexOf(libpostalAnsverElement);
             if (found != -1)
             {
-                return Line.Substring(found, libpostalAnsverElement.Length);
+                //try {
+                    return Line.Substring(found, libpostalAnsverElement.Length);
+                //} catch { UnityEngine.Debug.LogError($"{LineIndex}: {libpostalAnsverElement} -> {Line}"); }
             }
             return libpostalAnsverElement;
         }

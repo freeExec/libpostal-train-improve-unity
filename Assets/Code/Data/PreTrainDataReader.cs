@@ -104,6 +104,7 @@ namespace LP.Data
         private void CleanAndPrepare()
         {
             Profiler.BeginSample("CleanAndPrepare");
+            RemoveBadUTF8Char(ref _originalLines);
             RemoveDublicate(ref _originalLines, ref _bitMap);
 
             Profiler.BeginSample("GetMappedCount");
@@ -200,6 +201,24 @@ namespace LP.Data
 
             Profiler.EndSample();
             UnityEngine.Debug.Log($"Remove lines: {removeLines}");
+        }
+
+        private static void RemoveBadUTF8Char(ref string[] lines)
+        {
+            const char BAD_CHAR = '�';
+            const char REPLACE_CHAR = '_';
+
+            Profiler.BeginSample("RemoveBadUTF8Char");
+            for (int i = 0, n = 0; i < lines.Length; i++)
+            {
+                var line = lines[i];
+                if (line.Contains(BAD_CHAR))
+                {
+                    lines[i] = line.Replace(BAD_CHAR, REPLACE_CHAR);
+                    UnityEngine.Debug.Log($"bad chars\n{line}");
+                }
+            }
+            Profiler.EndSample();
         }
 
         public void SaveTsvPreTrainData()
