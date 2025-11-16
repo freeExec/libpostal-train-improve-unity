@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
@@ -49,6 +50,8 @@ namespace LP.UI
         [SerializeField] Toggle _useNextMathRecord = default;
         [SerializeField] Toggle _useNextDifferentRecord = default;
 
+        [SerializeField] Toggle _autoApprovalRecord = default;
+
         [SerializeField] GameObject _waiterView = default;
 
         [SerializeField] EditComponentWindow _editComponentWindow = default;
@@ -79,6 +82,8 @@ namespace LP.UI
 
         private HashSet<string> prevExpandedAddr;
         private HashSet<string> currentExpandedAddr;
+
+        private Coroutine _coroAutoApproval;
 
         private bool Waiting
         {
@@ -196,6 +201,19 @@ namespace LP.UI
 
         private void OnNextAddress()
         {
+            if (_autoApprovalRecord.isOn)
+            {
+                _autoApprovalRecord.isOn = false;
+                _coroAutoApproval = StartCoroutine(OnAutoApprovalNextRecord());
+                return;
+            }
+
+            if (_coroAutoApproval is not null)
+            {
+                StopCoroutine(_coroAutoApproval);
+                _coroAutoApproval = null;
+            }
+
             if (!outAddressView.IsEmpty)
                 SaveAddress(outAddressView);
             else
@@ -213,6 +231,34 @@ namespace LP.UI
             _proccessedCount++;
         }
 
+        private IEnumerator OnAutoApprovalNextRecord()
+        {
+            bool isMatch = false;
+            do
+            {
+                SetNextAddress(_coreProcess.HeaderOrder);
+                isMatch = IsMatchTsvAndLibpostal(_currentLPRecord, _coreProcess.HeaderOrder);
+                if (isMatch)
+                {
+                    ShowCurrentAddress();
+                    SaveAddress(tsvAddressView);
+                    _proccessedCount++;
+                }
+
+                yield return null;
+
+            } while (isMatch);
+
+            ShowCurrentAddress();
+
+            _buttonDump.interactable = true;
+
+            if (_proccessedCount == WARNING_NEED_DUMP)
+            {
+                ReplaceButtonNormalColor(_buttonDump, _warningColor, Color.black);
+            }
+        }
+
         private void SetNextAddress(AddressFormatter[] headerOrder)
         {
             if (_useLongestRecord.isOn)
@@ -228,10 +274,7 @@ namespace LP.UI
                 do
                 {
                     _currentLPRecord = _coreProcess.GetNextRecord();
-                    if (string.IsNullOrEmpty(_currentLPRecord.Line)) break;
-                    var trueComponents = FillComponents(_currentLPRecord.Line, headerOrder);
-                    var libpostalComponents = _currentLPRecord.ParseResultEnum.Select(p => new ElementModel(p.Key, p.Value, ElementSource.Libpostal));
-                    isMatch = trueComponents.Where(c => !c.IsEmpty).SequenceEqual(libpostalComponents, comparer);
+                    isMatch = IsMatchTsvAndLibpostal(_currentLPRecord, _coreProcess.HeaderOrder);
                 } while (!isMatch);
             }
             else if (_useNextDifferentRecord.isOn)
@@ -241,14 +284,20 @@ namespace LP.UI
                 do
                 {
                     _currentLPRecord = _coreProcess.GetNextRecord();
-                    if (string.IsNullOrEmpty(_currentLPRecord.Line)) break;
-                    var trueComponents = FillComponents(_currentLPRecord.Line, headerOrder);
-                    var libpostalComponents = _currentLPRecord.ParseResultEnum.Select(p => new ElementModel(p.Key, p.Value, ElementSource.Libpostal));
-                    isMatch = trueComponents.Where(c => !c.IsEmpty).SequenceEqual(libpostalComponents, comparer);
+                    isMatch = IsMatchTsvAndLibpostal(_currentLPRecord, _coreProcess.HeaderOrder);
                 } while (isMatch);
             }
             else
                 _currentLPRecord = _coreProcess.GetNextRecord();
+        }
+
+        private static ElementModelMatchComparer ElementModelMatchComparer = new ElementModelMatchComparer();
+        private static bool IsMatchTsvAndLibpostal(LPRecord record, AddressFormatter[] headerOrder)
+        {
+            if (string.IsNullOrEmpty(record.Line)) return false;
+            var trueComponents = FillComponents(record.Line, headerOrder);
+            var libpostalComponents = record.ParseResultEnum.Select(p => new ElementModel(p.Key, p.Value, ElementSource.Libpostal));
+            return trueComponents.Where(c => !c.IsEmpty).SequenceEqual(libpostalComponents, ElementModelMatchComparer);
         }
 
         private static IEnumerable<ElementModel> FillComponents(string addrString, AddressFormatter[] addressColumns, ElementSource source = ElementSource.PreparePythonScript) =>
