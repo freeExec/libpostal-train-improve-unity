@@ -92,11 +92,11 @@ namespace LP.Model
             };
         }
 
-        public static List<AddressFormatter> HeaderToAddress(string header)
+        public static AddressFormatter[] HeaderToAddress(string header)
         {
             //index	region	district	city	suburb	street	house_number	unit    category
             var helperReverce = Enum.GetValues(typeof(AddressFormatter)).Cast<AddressFormatter>().ToDictionary(af => af.ToTsvString());
-            var h2a = header.Split('\t').Select(c => helperReverce[c]).ToList();
+            var h2a = header.Split('\t').Select(c => helperReverce[c]).ToArray();
             return h2a;
         }
     }

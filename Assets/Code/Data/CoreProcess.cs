@@ -17,7 +17,7 @@ namespace LP.Data
         [SerializeField] private MessageWindow _messageWindow;
 
         public bool IsLibpostalSetupSuccessful { get; private set; }
-        public List<AddressFormatter> HeaderOrder { get; private set; }
+        public AddressFormatter[] HeaderOrder { get; private set; }
 
         public int CompletedLines => dataReader.CompletedLines;
         public int TotalLines => dataReader.TotalLines;

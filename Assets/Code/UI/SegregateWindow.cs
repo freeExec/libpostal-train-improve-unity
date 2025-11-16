@@ -170,7 +170,7 @@ namespace LP.UI
             Waiting = true;
             await _coreProcess.LoadFileAsync(filename);
 
-            SetNextAddress(tsvAddressView);
+            SetNextAddress(_coreProcess.HeaderOrder);
             ShowCurrentAddress();
             Waiting = false;
         }
@@ -178,7 +178,7 @@ namespace LP.UI
         private void OnDeleteRecord()
         {
             _coreProcess.DeleteCurrentRecord();
-            SetNextAddress(tsvAddressView);
+            SetNextAddress(_coreProcess.HeaderOrder);
             ShowCurrentAddress();
             _buttonDump.interactable = true;
         }
@@ -201,7 +201,7 @@ namespace LP.UI
             else
                 SaveAddress(tsvAddressView);
 
-            SetNextAddress(tsvAddressView);
+            SetNextAddress(_coreProcess.HeaderOrder);
             ShowCurrentAddress();
 
             _buttonDump.interactable = true;
@@ -213,7 +213,7 @@ namespace LP.UI
             _proccessedCount++;
         }
 
-        private void SetNextAddress(AddressRecord addressView)
+        private void SetNextAddress(AddressFormatter[] headerOrder)
         {
             if (_useLongestRecord.isOn)
                 _currentLPRecord = _coreProcess.GetNextRecordByLong();
@@ -229,7 +229,7 @@ namespace LP.UI
                 {
                     _currentLPRecord = _coreProcess.GetNextRecord();
                     if (string.IsNullOrEmpty(_currentLPRecord.Line)) break;
-                    var trueComponents = FillComponents(_currentLPRecord.Line, addressView.AddressColumns);
+                    var trueComponents = FillComponents(_currentLPRecord.Line, headerOrder);
                     var libpostalComponents = _currentLPRecord.ParseResultEnum.Select(p => new ElementModel(p.Key, p.Value, ElementSource.Libpostal));
                     isMatch = trueComponents.Where(c => !c.IsEmpty).SequenceEqual(libpostalComponents, comparer);
                 } while (!isMatch);
@@ -242,7 +242,7 @@ namespace LP.UI
                 {
                     _currentLPRecord = _coreProcess.GetNextRecord();
                     if (string.IsNullOrEmpty(_currentLPRecord.Line)) break;
-                    var trueComponents = FillComponents(_currentLPRecord.Line, addressView.AddressColumns);
+                    var trueComponents = FillComponents(_currentLPRecord.Line, headerOrder);
                     var libpostalComponents = _currentLPRecord.ParseResultEnum.Select(p => new ElementModel(p.Key, p.Value, ElementSource.Libpostal));
                     isMatch = trueComponents.Where(c => !c.IsEmpty).SequenceEqual(libpostalComponents, comparer);
                 } while (isMatch);
@@ -259,12 +259,13 @@ namespace LP.UI
 
         private void ShowCurrentAddress(bool saveNormAddr = true)
         {
-            var addressComponents = FillComponents(_currentLPRecord.Line, tsvAddressView.AddressColumns);
+            var addressComponents = FillComponents(_currentLPRecord.Line, /*tsvAddressView.AddressColumns*/_coreProcess.HeaderOrder);
             tsvAddressView.Setup(addressComponents);
 
             //ShowLibpostalParse(_currentLine, true, applyNormAddr);
             postalAddressView.Setup(_currentLPRecord.ParseResultEnum.Select(p => new ElementModel(p.Key, p.Value, ElementSource.Libpostal)));
             SetNormAddr(saveNormAddr);
+            SetSimirarStatus();
 
             if (_copySelector.CopySelector == CopySelector.Source)
                 outAddressView.Setup(tsvAddressView.Elements.Where(e => !e.IsEmpty));
