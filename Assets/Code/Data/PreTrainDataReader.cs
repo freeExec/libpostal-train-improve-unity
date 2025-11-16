@@ -157,6 +157,9 @@ namespace LP.Data
             }
             _sortLongestStates.OrderLines.Sort((t1, t2) => t2.Key.CompareTo(t1.Key));
             _sortAddrStates.OrderLines.Sort((t1, t2) => string.CompareOrdinal(t1.Key, t2.Key));
+
+            //File.WriteAllText("sortAddrStates.txt", string.Join(Environment.NewLine, _sortAddrStates.OrderLines.Select(l => $"{l.Value:000000} - {l.Key}")));
+
             Profiler.EndSample();
             _hasDeletedRecord = false;
             Profiler.EndSample();
@@ -309,15 +312,17 @@ namespace LP.Data
 
         public string GetNextRecordByLong()
         {
-            int index = _sortLongestStates.CurrentIndex + 1;
-            while (index < _bitMap.Length)
+            int sortIndex = _sortLongestStates.CurrentIndex + 1;
+            while (sortIndex < _bitMap.Length)
             {
-                int originalIndex = _sortLongestStates.OrderLines[index].Value;
-                index++;
+                int originalIndex = _sortLongestStates.OrderLines[sortIndex].Value;
                 if (_bitMap[originalIndex])
+                {
+                    sortIndex++;
                     continue;                
+                }
 
-                _sortLongestStates.CurrentIndex = index;
+                _sortLongestStates.CurrentIndex = sortIndex;
                 _currentOriginalIndex = originalIndex;
                 return _originalLines[_currentOriginalIndex];
             }
@@ -327,15 +332,17 @@ namespace LP.Data
 
         public string GetNextRecordBySortAddr()
         {
-            int index = _sortAddrStates.CurrentIndex + 1;
-            while (index < _bitMap.Length - 1)
+            int sortIndex = _sortAddrStates.CurrentIndex + 1;
+            while (sortIndex < _bitMap.Length - 1)
             {
-                int originalIndex = _sortAddrStates.OrderLines[index].Value;
-                index++;
+                int originalIndex = _sortAddrStates.OrderLines[sortIndex].Value;
                 if (_bitMap[originalIndex])
+                {
+                    sortIndex++;
                     continue;                
+                }
 
-                _sortAddrStates.CurrentIndex = index;
+                _sortAddrStates.CurrentIndex = sortIndex;
                 _currentOriginalIndex = originalIndex;
                 return _originalLines[_currentOriginalIndex];
             }
