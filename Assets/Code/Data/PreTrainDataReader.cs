@@ -123,6 +123,7 @@ namespace LP.Data
 
             int streetIndex = Array.IndexOf(columns, HEADER_STREET);
             int houseIndex = Array.IndexOf(columns, HEADER_HOUSE_NUMBER);
+            bool isHouseLastColumn = houseIndex == columns.Length - 1;
 
             for (int i = 0; i < _originalLines.Length; i++)     // включаем заголовк, он не будет выбран, т.к. зарание помечен, что сделан
             {
@@ -130,20 +131,24 @@ namespace LP.Data
 
                 if (streetIndex != -1 && houseIndex != -1)
                 {
-                    int cp = -1;
+                    int sepPos = -1;
                     int ci = 0;
                     int s = 0, e = 0;
                     do
                     {
-                        cp = _originalLines[i].IndexOf('\t', cp + 1);
+                        sepPos = _originalLines[i].IndexOf('\t', sepPos + 1);
 
                         if (ci == streetIndex - 1)
-                            s = cp + 1;
+                            s = sepPos + 1;
                         else if (ci == houseIndex)
-                            e = cp;
+                        {
+                            e = sepPos;
+                            if (isHouseLastColumn)
+                                e = _originalLines[i].Length - 1;
+                        }
 
                         ci++;
-                    } while (cp != -1);
+                    } while (sepPos != -1);
                     _sortAddrStates.OrderLines.Add(new KeyValuePair<string, int>(_originalLines[i].Substring(s, e - s), i));
                 }
             }
@@ -209,7 +214,7 @@ namespace LP.Data
             const char REPLACE_CHAR = '_';
 
             Profiler.BeginSample("RemoveBadUTF8Char");
-            for (int i = 0, n = 0; i < lines.Length; i++)
+            for (int i = 0; i < lines.Length; i++)
             {
                 var line = lines[i];
                 if (line.Contains(BAD_CHAR))
