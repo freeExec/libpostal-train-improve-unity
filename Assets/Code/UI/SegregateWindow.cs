@@ -341,7 +341,6 @@ namespace LP.UI
             var addressComponents = FillComponents(_currentLPRecord.Line, /*tsvAddressView.AddressColumns*/_coreProcess.HeaderOrder);
             tsvAddressView.Setup(addressComponents);
 
-            //ShowLibpostalParse(_currentLine, true, applyNormAddr);
             postalAddressView.Setup(_currentLPRecord.ParseResultEnum.Select(p => new ElementModel(p.Key, p.Value, ElementSource.Libpostal)));
             SetNormAddr(saveNormAddr);
             SetSimirarStatus();
@@ -385,8 +384,8 @@ namespace LP.UI
             var elementsMap = outAddressView.Elements.ToLookup(e => e.Group);
 
             var addrStr = string.Join(" ", _coreProcess.HeaderOrder.Select(h => string.Join(" ", elementsMap[h].Select(e => e.Value))));
-            //ShowLibpostalParse(addrStr, true, false);
-            var lPRecord = new LPRecord(_currentLPRecord.LineIndex, addrStr);
+            var lpRecord = new LPRecord(_currentLPRecord.LineIndex, addrStr);
+            postalAddressView.Setup(lpRecord.ParseResultEnum.Select(p => new ElementModel(p.Key, p.Value, ElementSource.Libpostal)));
             SetNormAddr(false);
         }
 
@@ -395,19 +394,6 @@ namespace LP.UI
             _currentLPRecord = new LPRecord(_currentLPRecord.LineIndex, component.Element.Value);
             postalAddressView.Setup(_currentLPRecord.ParseResultEnum.Select(p => new ElementModel(p.Key, p.Value, ElementSource.Libpostal)));
         }
-
-        /*private void ShowLibpostalParse(string addrStr, bool applyNormAddr, bool saveNormAddr)
-        {
-            var addrStrNoTab = addrStr.Replace('\t', ' ');
-            var addressComponents = ParseLibpostal(addrStrNoTab);
-
-            postalAddressView.Setup(addressComponents);
-
-            if (applyNormAddr)
-            {
-                SetNormAddr(saveNormAddr, addressComponents);
-            }
-        }*/
 
         private void SetSimirarStatus()
         {
