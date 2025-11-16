@@ -275,7 +275,7 @@ namespace LP.Data
 
         public string GetNextRecord()
         {
-            int index = _currentOriginalIndex;
+            int index = _currentOriginalIndex + 1;
 
             while (index < _bitMap.Length && _bitMap[index])
             { index++; }
