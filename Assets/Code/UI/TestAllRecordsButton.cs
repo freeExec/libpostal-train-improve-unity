@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
@@ -18,20 +19,46 @@ namespace LP.UI
         [SerializeField] CanvasGroup progressCanvas;
 
         private PreTrainDataReader dataReader;
+        private CancellationTokenSource cancellationProcessToken;
         private AwaitableCompletionSource awatingSource;
+
+        public bool IsProcessing => awatingSource is not null;
 
         public async void Process(string dataPath, string filename)
         {
+            cancellationProcessToken = CancellationTokenSource.CreateLinkedTokenSource(destroyCancellationToken);
+
             progressCanvas.alpha = 1;
             await Task.Yield();
 
             var filenameComplete = Path.GetFileNameWithoutExtension(filename) + "_complete" + Path.GetExtension(filename);
-            await Task.Run(() => dataReader = new PreTrainDataReader(dataPath, filenameComplete));
-            StartCoroutine(PrecessCo(progressCompleted));
-            await awatingSource.Awaitable;
+            if (File.Exists(filenameComplete))
+            {
+                await Task.Run(() => dataReader = new PreTrainDataReader(dataPath, filenameComplete), cancellationProcessToken.Token);
+                if (cancellationProcessToken.IsCancellationRequested == false)
+                {
+                    StartCoroutine(PrecessCo(progressCompleted));
+                    await awatingSource.Awaitable;
+                }
+            }
+            if (cancellationProcessToken.IsCancellationRequested == false)
+            {
+                await Task.Run(() => dataReader = new PreTrainDataReader(dataPath, filename), cancellationProcessToken.Token);
+                if (cancellationProcessToken.IsCancellationRequested == false)
+                {
+                    StartCoroutine(PrecessCo(progressAll));
+                    await awatingSource.Awaitable;
+                }
+            }
+            
+            cancellationProcessToken.Dispose();
+            cancellationProcessToken = null;
+        }
 
-            await Task.Run(() => dataReader = new PreTrainDataReader(dataPath, filename));
-            StartCoroutine(PrecessCo(progressAll));
+        public void ProcessStop()
+        {
+            //progressCanvas.alpha = 0;
+            cancellationProcessToken?.Cancel();
         }
 
         private IEnumerator PrecessCo(ProgressBarGradientColor progress)
@@ -46,6 +73,9 @@ namespace LP.UI
             // skip header
             for (int currentLineIndex = 1; currentLineIndex <= dataReader.TotalLines; currentLineIndex++)
             {
+                if (cancellationProcessToken.IsCancellationRequested)
+                    break;
+
                 var line = dataReader.GetRecord(currentLineIndex);
                 var lprecord = new LPRecord(currentLineIndex, line);
 

@@ -372,7 +372,12 @@ namespace LP.UI
         private void OnTestAllLines()
         {
             var filename = _selectFile.options[_selectFile.value].text;
-            _testAllRecords.Process(_coreProcess.ValidateDataPath, filename);
+            if (_testAllRecords.IsProcessing)
+            {
+                _testAllRecords.ProcessStop();
+            }
+            else
+                _testAllRecords.Process(_coreProcess.ValidateDataPath, filename);
         }
 
         private static void ReplaceButtonNormalColor(Button button, Color colorNormal, Color colorHover)

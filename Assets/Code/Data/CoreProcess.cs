@@ -67,7 +67,7 @@ namespace LP.Data
 
         public async Task LoadFileAsync(string filename)
         {
-            await Task.Run(() => dataReader = new PreTrainDataReader(ValidateDataPath, filename));
+            await Task.Run(() => dataReader = new PreTrainDataReader(ValidateDataPath, filename), destroyCancellationToken);
             HeaderOrder = AddressFormatterHelper.HeaderToAddress(dataReader.Header);
         }
 
