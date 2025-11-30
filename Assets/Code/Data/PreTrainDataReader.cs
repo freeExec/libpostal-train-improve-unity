@@ -60,11 +60,11 @@ namespace LP.Data
         private SortState<int> _sortLongestStates;
         private SortState<string> _sortAddrStates;
 
-        private bool _hasDeletedRecord;
+        private int? _deletedRecords;
 
         public string Header => _originalLines[0];
         public int CompletedLines { get; private set; }
-        public int TotalLines => _originalLines.Length - 1; // за вычетом строки-заголовка
+        public int TotalLines => _originalLines.Length - 1 - (_deletedRecords ?? 0); // за вычетом строки-заголовка
         public int CurrentLineIndex => _currentOriginalIndex;
 
         public PreTrainDataReader(string storePath, string filenameWithoutExtension)
@@ -161,11 +161,11 @@ namespace LP.Data
             //File.WriteAllText("sortAddrStates.txt", string.Join(Environment.NewLine, _sortAddrStates.OrderLines.Select(l => $"{l.Value:000000} - {l.Key}")));
 
             Profiler.EndSample();
-            _hasDeletedRecord = false;
+            _deletedRecords = null;
             Profiler.EndSample();
         }
 
-        private static void RemoveDublicate(ref string[] lines, ref BitMap bitMap)
+        private static int RemoveDublicate(ref string[] lines, ref BitMap bitMap)
         {
             Profiler.BeginSample("RemoveDublicate");
             var newLines = new List<string>(lines.Length);
@@ -212,6 +212,8 @@ namespace LP.Data
 
             Profiler.EndSample();
             UnityEngine.Debug.Log($"Remove lines: {removeLines}");
+
+            return removeLines;
         }
 
         private static void RemoveBadUTF8Char(ref string[] lines)
@@ -234,8 +236,17 @@ namespace LP.Data
 
         public void SaveTsvPreTrainData()
         {
-            if (_hasDeletedRecord)
+            if (_deletedRecords.HasValue)
+            {
+                // вернуться назад за счёт удалённых записей.
+                // иначе получаются пропуски
+                _currentOriginalIndex -= _deletedRecords.Value;
                 CleanAndPrepare();
+            }
+
+            if (_currentOriginalIndex > 0)
+                _currentOriginalIndex--;    // и ещё один назад, т.к. мы будем вызывать NEXT
+
             File.WriteAllLines(_preTrainDataFilePath, _originalLines);
             using (var fBitMap = new FileStream(_completeBitMapFilePath, FileMode.Create, FileAccess.Write))
             {
@@ -267,7 +278,10 @@ namespace LP.Data
         public void DeleteCurrentRecord()
         {
             _originalLines[_currentOriginalIndex] = string.Empty;
-            _hasDeletedRecord = true;
+
+            if (_deletedRecords.HasValue)
+                _deletedRecords++;
+            else _deletedRecords = 1;
         }
 
         public void MarkRecordOk()

@@ -64,6 +64,8 @@ namespace LP.UI
         [SerializeField] TextMeshProUGUI _normAddr = default;
         [SerializeField] TextMeshProUGUI _lastNormAddr = default;
 
+        [SerializeField] TextMeshProUGUI _proccessedCountLabel = default;
+
         [SerializeField] MessageWindow _messageWindow = default;
 
         [SerializeField] TMP_Dropdown _selectFile = default;
@@ -80,6 +82,8 @@ namespace LP.UI
 
         private int _proccessedCount = 0;
         private Color _buttonDumpNormalColor;
+        //private Color _buttonDumpHoverColor;
+
         private Color _buttonDeleteNormalColor;
         private Color _buttonDeleteHoverColor;
 
@@ -178,7 +182,7 @@ namespace LP.UI
             Waiting = true;
             await _coreProcess.LoadFileAsync(filename);
 
-            SetNextAddress(_coreProcess.HeaderOrder);
+            SetNextAddress();
             ShowCurrentAddress();
             Waiting = false;
         }
@@ -186,7 +190,7 @@ namespace LP.UI
         private void OnDeleteRecord()
         {
             _coreProcess.DeleteCurrentRecord();
-            SetNextAddress(_coreProcess.HeaderOrder);
+            SetNextAddress();
             ShowCurrentAddress();
             _buttonDump.interactable = true;
         }
@@ -200,6 +204,8 @@ namespace LP.UI
             var row = string.Join("\t", _coreProcess.HeaderOrder.Select(h => string.Join(" ", elementsMap[h].Select(e => e.Value))));
 
             _coreProcess.SetRecord(row);
+
+            _proccessedCount++;
         }
 
         private void OnNextAddress()
@@ -222,16 +228,15 @@ namespace LP.UI
             else
                 SaveAddress(tsvAddressView);
 
-            SetNextAddress(_coreProcess.HeaderOrder);
+            SetNextAddress();
             ShowCurrentAddress();
 
             _buttonDump.interactable = true;
 
             if (_proccessedCount == WARNING_NEED_DUMP)
             {
-                ReplaceButtonNormalColor(_buttonDump, _warningColor, Color.black);
+                ReplaceButtonNormalColor(_buttonDump, _warningColor);
             }
-            _proccessedCount++;
         }
 
         private IEnumerator OnAutoApprovalNextRecord()
@@ -269,7 +274,6 @@ namespace LP.UI
                 {
                     ShowCurrentAddress();
                     SaveAddress(tsvAddressView);
-                    _proccessedCount++;
                 }
 
                 if (_proccessedCount % ITER_NEXT_RECORD_PER_FRAME == 0)
@@ -283,13 +287,13 @@ namespace LP.UI
 
             if (_proccessedCount == WARNING_NEED_DUMP)
             {
-                ReplaceButtonNormalColor(_buttonDump, _warningColor, Color.black);
+                ReplaceButtonNormalColor(_buttonDump, _warningColor);
             }
 
             _waitWithCancel.Hide();
         }
 
-        private void SetNextAddress(AddressFormatter[] headerOrder)
+        private void SetNextAddress()
         {
             if (_useLongestRecord.isOn)
                 _currentLPRecord = _coreProcess.GetNextRecordByLong();
@@ -351,6 +355,8 @@ namespace LP.UI
                 outAddressView.Setup(postalAddressView.Elements.Where(e => !e.IsEmpty));
 
             _counter.text = $"Completed: {_coreProcess.CompletedLines}/{_coreProcess.TotalLines} ({_coreProcess.CompletedLines / (float)_coreProcess.TotalLines:P4}) | {_coreProcess.CurrentLineIndex} | {_currentLPRecord.Line.Length}";
+
+            _proccessedCountLabel.text = $"+{_proccessedCount}";
         }
 
         private void OnRefreshAddress()
@@ -365,9 +371,12 @@ namespace LP.UI
             _buttonDump.interactable = false;
             Waiting = false;
 
-            ReplaceButtonNormalColor(_buttonDump, _buttonDumpNormalColor, Color.black);
+            ReplaceButtonNormalColor(_buttonDump, _buttonDumpNormalColor);
 
             _proccessedCount = 0;
+
+            SetNextAddress();
+            ShowCurrentAddress(false);
         }
 
         private async void DumpReadyProgress()
@@ -398,8 +407,7 @@ namespace LP.UI
         private void SetSimirarStatus()
         {
             bool similar = prevExpandedAddr is not null && prevExpandedAddr.Overlaps(currentExpandedAddr);
-            ReplaceButtonNormalColor(_buttonDelete, similar ? _warningColor : _buttonDeleteNormalColor,
-                                                    similar ? _warningColor : _buttonDeleteHoverColor);
+            ReplaceButtonNormalColor(_buttonDelete, similar ? _warningColor : _buttonDeleteNormalColor);
         }
 
         private void SetNormAddr(bool saveNormAddr)
@@ -459,12 +467,15 @@ namespace LP.UI
             _waitWithCancel.Hide();
         }
 
-        private static void ReplaceButtonNormalColor(Button button, Color colorNormal, Color colorHover)
+        private static void ReplaceButtonNormalColor(Button button, Color colorNormal)
         {
             var colors = button.colors;
             colors.normalColor = colorNormal;
-            if (colorHover != Color.black)
-                colors.highlightedColor = colorHover;
+
+            Color.RGBToHSV(colorNormal, out  var h, out var s, out var v);
+            v = v * 0.8f;
+            colors.highlightedColor = Color.HSVToRGB(h, s,  v);
+
             button.colors = colors;
         }
     }

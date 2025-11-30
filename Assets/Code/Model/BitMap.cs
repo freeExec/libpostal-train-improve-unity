@@ -20,6 +20,7 @@ namespace LP.Data
             get
             {
                 if (index >= Length) throw new IndexOutOfRangeException();
+                //UnityEngine.Debug.Log($"{index} -> [{index / BIT_TO_BYTE}] = {_map[index / BIT_TO_BYTE]} | [{index % BIT_TO_BYTE}] -> {((_map[index / BIT_TO_BYTE] & (1 << index % BIT_TO_BYTE)) != 0 ? '1' : '0')} |  0b{string.Join("", Enumerable.Range(0, BIT_TO_BYTE).Select(i => (_map[index / BIT_TO_BYTE] & (1 << i)) != 0 ? '1' : '0').Reverse() )}");
                 return (_map[index / BIT_TO_BYTE] & (1 << index % BIT_TO_BYTE)) != 0;
             }
             set
