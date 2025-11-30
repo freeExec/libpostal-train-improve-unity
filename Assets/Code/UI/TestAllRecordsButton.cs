@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -59,6 +60,14 @@ namespace LP.UI
             cancellationProcessToken?.Cancel();
             cancellationProcessToken?.Dispose();
             cancellationProcessToken = null;
+        }
+
+        public void ClearProgress()
+        {
+            progressCompleted.Value = 0;
+            progressCompleted.SetLabel(string.Empty);
+            progressAll.Value = 0;
+            progressAll.SetLabel(string.Empty);
         }
 
         private IEnumerator PrecessCo(ProgressBarGradientColor progress)

@@ -4,12 +4,9 @@ using LP.Model;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -445,6 +442,7 @@ namespace LP.UI
 
         private void OnTestAllLines()
         {
+            _testAllRecords.ClearProgress();
             var filename = _selectFile.options[_selectFile.value].text;
             _testAllRecords.Process(_coreProcess.ValidateDataPath, filename);
             StartCoroutine(WaitTestAllLineCoro());
