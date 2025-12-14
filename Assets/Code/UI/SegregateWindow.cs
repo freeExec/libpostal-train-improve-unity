@@ -195,6 +195,11 @@ namespace LP.UI
             SetNextAddress();
             ShowCurrentAddress();
             _buttonDump.interactable = true;
+
+            if (_proccessedCount + _removedCount == WARNING_NEED_DUMP)
+            {
+                ReplaceButtonNormalColor(_buttonDump, _warningColor);
+            }
         }
 
         private void SaveAddress(AddressRecord record)
