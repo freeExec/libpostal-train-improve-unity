@@ -48,7 +48,19 @@ namespace LP.UI.HistoryAddrComparer
             public readonly HashSet<string> CurrentAddr;
             public readonly HashSet<string> PrevAddr;
 
-            public bool IsMatch => PrevAddr != null ? CurrentAddr.Overlaps(PrevAddr) : false;
+            public bool IsMatch
+            {
+                get
+                {
+                    if (CurrentAddr != null && PrevAddr != null)
+                        return CurrentAddr.Overlaps(PrevAddr);
+
+                    if (CurrentAddr == null && PrevAddr == null)
+                        return true;
+                    
+                    return false;
+                }
+            }
 
             public ComparerData(AddressFormatter address, HashSet<string> currentAddr, HashSet<string> prevAddr)
             {
