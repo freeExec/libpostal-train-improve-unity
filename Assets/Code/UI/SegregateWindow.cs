@@ -63,6 +63,7 @@ namespace LP.UI
         [SerializeField] HistoryAddrComparerPanel _historyAddrComparer = default;
 
         [SerializeField] TextMeshProUGUI _proccessedCountLabel = default;
+        [SerializeField] TextMeshProUGUI _removedCountLabel = default;
 
         [SerializeField] MessageWindow _messageWindow = default;
 
@@ -79,6 +80,7 @@ namespace LP.UI
         private LPRecord _currentLPRecord;
 
         private int _proccessedCount = 0;
+        private int _removedCount = 0;
         private Color _buttonDumpNormalColor;
         //private Color _buttonDumpHoverColor;
 
@@ -150,12 +152,13 @@ namespace LP.UI
 
         private void OnFileSelectedHandler(int index)
         {
-            if (_proccessedCount >= WARNING_NEED_DUMP)
+            if (_proccessedCount + _removedCount >= WARNING_NEED_DUMP)
             {
                 _messageWindow.OnFinish += RequestSaveRecord;
                 _messageWindow.Setup("More unsaved records. Ok Save. (X) Discard.");
                 _messageWindow.gameObject.SetActive(true);
                 _proccessedCount = 0;
+                _removedCount = 0;
                 return;
             }
 
@@ -188,6 +191,7 @@ namespace LP.UI
         private void OnDeleteRecord()
         {
             _coreProcess.DeleteCurrentRecord();
+            _removedCount++;
             SetNextAddress();
             ShowCurrentAddress();
             _buttonDump.interactable = true;
@@ -231,7 +235,7 @@ namespace LP.UI
 
             _buttonDump.interactable = true;
 
-            if (_proccessedCount == WARNING_NEED_DUMP)
+            if (_proccessedCount + _removedCount == WARNING_NEED_DUMP)
             {
                 ReplaceButtonNormalColor(_buttonDump, _warningColor);
             }
@@ -283,7 +287,7 @@ namespace LP.UI
 
             _buttonDump.interactable = true;
 
-            if (_proccessedCount == WARNING_NEED_DUMP)
+            if (_proccessedCount + _removedCount == WARNING_NEED_DUMP)
             {
                 ReplaceButtonNormalColor(_buttonDump, _warningColor);
             }
@@ -355,6 +359,7 @@ namespace LP.UI
             _counter.text = $"Completed: {_coreProcess.CompletedLines}/{_coreProcess.TotalLines} ({_coreProcess.CompletedLines / (float)_coreProcess.TotalLines:P4}) | {_coreProcess.CurrentLineIndex} | {_currentLPRecord.Line.Length}";
 
             _proccessedCountLabel.text = $"+{_proccessedCount}";
+            _removedCountLabel.text = $"-{_removedCount}";
         }
 
         private void OnRefreshAddress()
@@ -372,6 +377,7 @@ namespace LP.UI
             ReplaceButtonNormalColor(_buttonDump, _buttonDumpNormalColor);
 
             _proccessedCount = 0;
+            _removedCount = 0;
 
             SetNextAddress();
             ShowCurrentAddress(false);
