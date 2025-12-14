@@ -9647,6 +9647,7 @@ GameObject:
   - component: {fileID: 1250192817}
   - component: {fileID: 1250192819}
   - component: {fileID: 1250192818}
+  - component: {fileID: 1250192820}
   m_Layer: 5
   m_Name: Version
   m_TagString: Untagged
@@ -9693,7 +9694,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 1.08.251130
+  m_text: 1.00
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: db2860944c1c42847a6a0a940411cfd5, type: 2}
   m_sharedMaterial: {fileID: 5343430339420016383, guid: db2860944c1c42847a6a0a940411cfd5, type: 2}
@@ -9772,6 +9773,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1250192816}
   m_CullTransparentMesh: 1
+--- !u!114 &1250192820
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1250192816}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c68b32731b6338498d418a5db4fc22e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerVersionView
+  label: {fileID: 1250192818}
 --- !u!1 &1261146681
 GameObject:
   m_ObjectHideFlags: 0
