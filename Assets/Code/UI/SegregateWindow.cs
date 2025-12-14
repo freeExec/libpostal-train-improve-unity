@@ -1,6 +1,7 @@
 ﻿using LibPostalNet;
 using LP.Data;
 using LP.Model;
+using LP.UI.HistoryAddrComparer;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -58,8 +59,8 @@ namespace LP.UI
 
         [Header("Labels")]
         [SerializeField] TextMeshProUGUI _counter = default;
-        [SerializeField] TextMeshProUGUI _normAddr = default;
-        [SerializeField] TextMeshProUGUI _lastNormAddr = default;
+
+        [SerializeField] HistoryAddrComparerPanel _historyAddrComparer = default;
 
         [SerializeField] TextMeshProUGUI _proccessedCountLabel = default;
 
@@ -84,8 +85,8 @@ namespace LP.UI
         private Color _buttonDeleteNormalColor;
         private Color _buttonDeleteHoverColor;
 
-        private HashSet<string> prevExpandedAddr;
-        private HashSet<string> currentExpandedAddr;
+        private List<KeyValuePair<AddressFormatter, HashSet<string>>> prevExpandedAddrSet;
+        private List<KeyValuePair<AddressFormatter, HashSet<string>>> currentExpandedAddrSet;
 
         private Coroutine _coroAutoApproval;
 
@@ -344,7 +345,7 @@ namespace LP.UI
 
             postalAddressView.Setup(_currentLPRecord.ParseResultEnum.Select(p => new ElementModel(p.Key, p.Value, ElementSource.Libpostal)));
             SetNormAddr(saveNormAddr);
-            SetSimirarStatus();
+            //SetSimirarStatus();
 
             if (_copySelector.CopySelector == CopySelector.Source)
                 outAddressView.Setup(tsvAddressView.Elements.Where(e => !e.IsEmpty));
@@ -401,22 +402,23 @@ namespace LP.UI
             postalAddressView.Setup(_currentLPRecord.ParseResultEnum.Select(p => new ElementModel(p.Key, p.Value, ElementSource.Libpostal)));
         }
 
-        private void SetSimirarStatus()
+        /*private void SetSimirarStatus()
         {
             bool similar = prevExpandedAddr is not null && prevExpandedAddr.Overlaps(currentExpandedAddr);
             ReplaceButtonNormalColor(_buttonDelete, similar ? _warningColor : _buttonDeleteNormalColor);
-        }
+        }*/
 
         private void SetNormAddr(bool saveNormAddr)
         {
             if (saveNormAddr)
             {
-                prevExpandedAddr = currentExpandedAddr;
-                _lastNormAddr.text = _normAddr.text;
+                prevExpandedAddrSet = currentExpandedAddrSet;
             }
 
-            currentExpandedAddr = _currentLPRecord.ExpandedAddressGlobalSet;
-            _normAddr.text = _currentLPRecord.ExpandedAddressIndividual;
+            currentExpandedAddrSet = _currentLPRecord.ExpandedAddressIndividualSet;
+
+            bool similar = _historyAddrComparer.Setup(currentExpandedAddrSet, prevExpandedAddrSet);
+            ReplaceButtonNormalColor(_buttonDelete, similar ? _warningColor : _buttonDeleteNormalColor);
         }
 
         private void OnEditComponentBegin(AddressComponent component)

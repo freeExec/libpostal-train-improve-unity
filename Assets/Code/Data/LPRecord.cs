@@ -19,13 +19,11 @@ namespace LP.Data
         private static LibpostalNormalizeOptions optExpand;
         private static LibpostalAddressParserOptions parseOpt;
 
-
         public int LineIndex;
         public string Line;
         public List<KeyValuePair<string, string>> ParseResult;
         public List<KeyValuePair<AddressFormatter, string>> ParseResultEnum;
-        public HashSet<string> ExpandedAddressGlobalSet;
-        public string ExpandedAddressIndividual;
+        public List<KeyValuePair<AddressFormatter, HashSet<string>>> ExpandedAddressIndividualSet;
 
         public bool IsEmpty => string.IsNullOrWhiteSpace(Line);
 
@@ -131,13 +129,14 @@ namespace LP.Data
             // Почему-то если разделять запятой, то он склеивает некоторые слова
             // Хрень какая-то при `164840 Архангельская область Онега пр. Ленина`, при одном запросе 4 ответа и раскрытие сокращения
             // при повтроном только 3 и нет раскрытия
-            ExpandedAddressGlobalSet = 
-                libpostal.LibpostalExpandAddress(
-                    string.Join(LP_SEPATARE_SPACE, ParseResultEnum.Where(c => c.Key <= AddressFormatter.Road).Select(c => c.Value)),
-                    optExpand
-                ).Expansions.ToHashSet();
+            //ExpandedAddressGlobalSet = 
+            //    libpostal.LibpostalExpandAddress(
+            //        string.Join(LP_SEPATARE_SPACE, ParseResultEnum.Where(c => c.Key <= AddressFormatter.Road).Select(c => c.Value)),
+            //        optExpand
+            //    ).Expansions.ToHashSet();
             
-            ExpandedAddressIndividual = string.Empty;
+            //ExpandedAddressIndividual = string.Empty;
+            ExpandedAddressIndividualSet = new List<KeyValuePair<AddressFormatter, HashSet<string>>>(ParseResultEnum.Count);
             foreach (var addressComponent in ParseResultEnum)
             {
                 optExpand.AddressComponents = (ushort)addressComponent.Key.ToLibpostalAddress();
@@ -147,7 +146,8 @@ namespace LP.Data
                 {
                     //int maxLength = expandAddr.Expansions.Max(e  => e.Length);
                     //expandAddrCombine += expandAddr.Expansions.First(e => e.Length == maxLength) + " ";
-                    ExpandedAddressIndividual += expandAddr.Expansions.First() + LP_SEPATARE_SEMI + " ";
+                    //ExpandedAddressIndividual += expandAddr.Expansions.First() + LP_SEPATARE_SEMI + " ";
+                    ExpandedAddressIndividualSet.Add(new (addressComponent.Key, new HashSet<string>(expandAddr.Expansions)));
                 }
             }
         }

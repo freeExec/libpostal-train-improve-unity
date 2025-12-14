@@ -842,7 +842,6 @@ namespace LibPostalNet
             if (__arg2 == (ulong)0) __result0 = null;
             __result0 = global::LibPostalNet.LibpostalNormalizeResponse.__CreateInstance(__ret, __arg2);
             return __result0;
-            
         }
 
         public static void LibpostalExpansionArrayDestroy(sbyte** expansions, ulong n)
