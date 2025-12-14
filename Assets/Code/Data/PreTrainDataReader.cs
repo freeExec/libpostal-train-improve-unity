@@ -118,41 +118,53 @@ namespace LP.Data
             _sortLongestStates = new SortState<int>(_originalLines.Length);
             _sortAddrStates = new SortState<string>(_originalLines.Length);
 
+            const string POST_STREET = "index";
+            const string CITY_STREET = "city";
             const string HEADER_STREET = "street";
-            const string HEADER_HOUSE_NUMBER = "house_number";
 
             char[] splitTab = new char[] { '\t' };
             var columns = Header.Split(splitTab);
 
+            int postIndex = Array.IndexOf(columns, POST_STREET);
+            int cityIndex = Array.IndexOf(columns, CITY_STREET);
             int streetIndex = Array.IndexOf(columns, HEADER_STREET);
-            int houseIndex = Array.IndexOf(columns, HEADER_HOUSE_NUMBER);
-            bool isHouseLastColumn = houseIndex == columns.Length - 1;
 
             for (int i = 0; i < _originalLines.Length; i++)     // включаем заголовк, он не будет выбран, т.к. зарание помечен, что сделан
             {
-                _sortLongestStates.OrderLines.Add(new KeyValuePair<int, int>(_originalLines[i].Length, i));
+                var line = _originalLines[i];
+                _sortLongestStates.OrderLines.Add(new KeyValuePair<int, int>(line.Length, i));
 
-                if (streetIndex != -1 && houseIndex != -1)
+                if (streetIndex != -1)
                 {
                     int sepPos = -1;
                     int ci = 0;
-                    int s = 0, e = 0;
+                    // X-begin | X-end
+                    int pb = 0, pe = line.Length - 1;
+                    int cb = 0, ce = line.Length - 1;
+                    int sb = 0, se = line.Length - 1;
                     do
                     {
-                        sepPos = _originalLines[i].IndexOf('\t', sepPos + 1);
+                        sepPos = line.IndexOf('\t', sepPos + 1);
+
+                        if (ci == postIndex - 1)
+                            pb = sepPos + 1;
+                        else if (ci == postIndex)
+                            pe = sepPos;
+
+                        if (ci == cityIndex - 1)
+                            cb = sepPos + 1;
+                        else if (ci == cityIndex)
+                            ce = sepPos;
 
                         if (ci == streetIndex - 1)
-                            s = sepPos + 1;
-                        else if (ci == houseIndex)
-                        {
-                            e = sepPos;
-                            if (isHouseLastColumn)
-                                e = _originalLines[i].Length - 1;
-                        }
+                            sb = sepPos + 1;
+                        else if (ci == streetIndex)
+                            se = sepPos;
 
                         ci++;
                     } while (sepPos != -1);
-                    _sortAddrStates.OrderLines.Add(new KeyValuePair<string, int>(_originalLines[i].Substring(s, e - s), i));
+                    var key = line[sb..se] + line[cb..ce] + line[pb..pe];
+                    _sortAddrStates.OrderLines.Add(new KeyValuePair<string, int>(key, i));
                 }
             }
             _sortLongestStates.OrderLines.Sort((t1, t2) => t2.Key.CompareTo(t1.Key));
