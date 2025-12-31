@@ -16,6 +16,8 @@ namespace LP.Data
         public const char LP_SEPATARE_SEMI = ',';
         public const char LP_SEPATARE_VBAR = '|';   // для склейки не работает
 
+        public const char LP_SEPATARE_NOBREAK_SPACE = ' ';
+
         private static LibpostalNormalizeOptions optExpand;
         private static LibpostalAddressParserOptions parseOpt;
 
@@ -105,23 +107,26 @@ namespace LP.Data
 
         private void FillConvertedParseToEnum()
         {
-            lineLowerNoSemi = Line.ToLowerInvariant().Replace(LP_SEPATARE_SEMI, LP_SEPATARE_SPACE);
+            lineLowerNoSemi = Line.ToLowerInvariant()
+                .Replace(LP_SEPATARE_SEMI, LP_SEPATARE_SPACE)
+                .Replace(LP_SEPATARE_NOBREAK_SPACE, LP_SEPATARE_SPACE);
+
             ParseResultEnum = 
                 ParseResult.Select(r =>
                     new KeyValuePair<AddressFormatter, string>(AddressFormatterHelper.GetFormatterFromLibpostal(r.Key), RecoveryCase(r.Value))
                 ).ToList();
         }
 
-        private string RecoveryCase(string libpostalAnsverElement)
+        private string RecoveryCase(string libpostalAnswerElement)
         {
-            int found = lineLowerNoSemi.IndexOf(libpostalAnsverElement);
+            int found = lineLowerNoSemi.IndexOf(libpostalAnswerElement);
             if (found != -1)
             {
                 //try {
-                    return Line.Substring(found, libpostalAnsverElement.Length);
+                    return Line.Substring(found, libpostalAnswerElement.Length);
                 //} catch { UnityEngine.Debug.LogError($"{LineIndex}: {libpostalAnsverElement} -> {Line}"); }
             }
-            return libpostalAnsverElement;
+            return libpostalAnswerElement;
         }
 
         private void FillExpandedAddress()
