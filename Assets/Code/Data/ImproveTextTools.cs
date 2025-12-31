@@ -1,4 +1,4 @@
-using LP.Model;
+п»їusing LP.Model;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,11 +10,11 @@ namespace LP.Data
 
         static (AddressFormatter AddressFormatter, string[] Replaces)[] _replacesHelperToInserSpace = new (AddressFormatter, string[])[]
         {
-            ( AddressFormatter.City,         new string[] { "п.", "г.", "д.", "с.", "пос." } ),
-            ( AddressFormatter.Road,         new string[] { "ул.", "пр.", "пер." } ),
-            ( AddressFormatter.CityDistrict, new string[] { "мкр." } ),
-            ( AddressFormatter.HouseNumber,  new string[] { "д.", "лит.", "стр.", "кор.", "корп.", "вл." } ),
-            ( AddressFormatter.Unit,         new string[] { "пом.", "кв.", "оф." } ),
+            ( AddressFormatter.City,         new string[] { "Рї.", "Рі.", "Рґ.", "СЃ.", "РїРѕСЃ." } ),
+            ( AddressFormatter.Road,         new string[] { "СѓР».", "РїСЂ.", "РїРµСЂ.", "РїСЂ-С‚." } ),
+            ( AddressFormatter.CityDistrict, new string[] { "РјРєСЂ." } ),
+            ( AddressFormatter.HouseNumber,  new string[] { "Рґ.", "Р»РёС‚.", "СЃС‚СЂ.", "РєРѕСЂ.", "РєРѕСЂРї.", "РІР»." } ),
+            ( AddressFormatter.Unit,         new string[] { "РїРѕРј.", "РєРІ.", "РѕС„." } ),
         };
 
         public static List<ElementModel> InsertSpaceAndTrim(IEnumerable<ElementModel> elements)
@@ -30,7 +30,7 @@ namespace LP.Data
 						continue;
 
 					int originalLength = fixElement.Value.Length;
-					string elementValue = fixElement.Value.TrimEnd('.', ' ').Replace("«", "").Replace("»", "");
+					string elementValue = fixElement.Value.TrimEnd('.', ' ').Replace("В«", "").Replace("В»", "");
 					bool isModify = originalLength > elementValue.Length;
 					foreach (var replace in tuple.Replaces)
 					{
