@@ -415,21 +415,14 @@ namespace LP.UI
             postalAddressView.Setup(_currentLPRecord.ParseResultEnum.Select(p => new ElementModel(p.Key, p.Value, ElementSource.Libpostal)));
         }
 
-        private AddressFormatter[] _splitAdrressGroupsOrder = new[]
-        {
-            AddressFormatter.City,
-            AddressFormatter.Road,
-            AddressFormatter.HouseNumber,
-            AddressFormatter.StateDisctrict,
-            AddressFormatter.CityDistrict,
-        };
-
         private void OnDropSplitElement(AddressComponent component)
         {
             var splits = component.Element.Value.Split(',');
 
             var leftElements = component.Movable.FromComponentGroup.Elements.Where(el => el != component.Element);
-            var newElements = splits.Zip(_splitAdrressGroupsOrder.Cycle(), (sp, af) => new ElementModel(af, sp.Trim(), ElementSource.ManualUserSeparate));
+
+            var addrrGroup = component.Movable.FromComponentGroup.Group;
+            var newElements = splits.Select(sp => new ElementModel(addrrGroup, sp.Trim(), ElementSource.ManualUserSeparate));
 
             component.Movable.FromComponentGroup.SetupElements(leftElements.Concat(newElements));
         }
