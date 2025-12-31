@@ -29,6 +29,7 @@ namespace LP.UI
         [Header("Dropper Box")]
         [SerializeField] DroperBox _trashDrop = default;
         [SerializeField] DroperBox _libpostalParseDrop = default;
+        [SerializeField] DroperBox _splitDrop = default;
         [SerializeField] DroperBox _editComponentDrop = default;
 
         [Header("Buttons")]
@@ -116,6 +117,7 @@ namespace LP.UI
 
             _trashDrop.OnDropAddressComponent += (component) => component.SetEmpty();
             _libpostalParseDrop.OnDropAddressComponent += OnDropCustomElement; // (component) => ShowLibpostalParse(component.Element.Value, false, false);
+            _splitDrop.OnDropAddressComponent += OnDropSplitElement;
             _editComponentDrop.OnDropAddressComponent += OnEditComponentBegin;
 
             _buttonDumpNormalColor = _buttonDump.colors.normalColor;
@@ -411,6 +413,25 @@ namespace LP.UI
         {
             _currentLPRecord = new LPRecord(_currentLPRecord.LineIndex, component.Element.Value);
             postalAddressView.Setup(_currentLPRecord.ParseResultEnum.Select(p => new ElementModel(p.Key, p.Value, ElementSource.Libpostal)));
+        }
+
+        private AddressFormatter[] _splitAdrressGroupsOrder = new[]
+        {
+            AddressFormatter.City,
+            AddressFormatter.Road,
+            AddressFormatter.HouseNumber,
+            AddressFormatter.StateDisctrict,
+            AddressFormatter.CityDistrict,
+        };
+
+        private void OnDropSplitElement(AddressComponent component)
+        {
+            var splits = component.Element.Value.Split(',');
+
+            var leftElements = component.Movable.FromComponentGroup.Elements.Where(el => el != component.Element);
+            var newElements = splits.Zip(_splitAdrressGroupsOrder.Cycle(), (sp, af) => new ElementModel(af, sp.Trim(), ElementSource.ManualUserSeparate));
+
+            component.Movable.FromComponentGroup.SetupElements(leftElements.Concat(newElements));
         }
 
         /*private void SetSimirarStatus()
