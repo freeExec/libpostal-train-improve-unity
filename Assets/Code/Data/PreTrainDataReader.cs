@@ -145,22 +145,23 @@ namespace LP.Data
                     do
                     {
                         sepPos = line.IndexOf('\t', sepPos + 1);
+                        if (sepPos != -1)
+                        {
+                            if (ci == postIndex - 1)
+                                pb = sepPos + 1;
+                            else if (ci == postIndex)
+                                pe = sepPos;
 
-                        if (ci == postIndex - 1)
-                            pb = sepPos + 1;
-                        else if (ci == postIndex)
-                            pe = sepPos;
+                            if (ci == cityIndex - 1)
+                                cb = sepPos + 1;
+                            else if (ci == cityIndex)
+                                ce = sepPos;
 
-                        if (ci == cityIndex - 1)
-                            cb = sepPos + 1;
-                        else if (ci == cityIndex)
-                            ce = sepPos;
-
-                        if (ci == streetIndex - 1)
-                            sb = sepPos + 1;
-                        else if (ci == streetIndex)
-                            se = sepPos;
-
+                            if (ci == streetIndex - 1)
+                                sb = sepPos + 1;
+                            else if (ci == streetIndex)
+                                se = sepPos;
+                        }
                         ci++;
                     } while (sepPos != -1);
                     var key = line[sb..se] + line[cb..ce] + line[pb..pe];
