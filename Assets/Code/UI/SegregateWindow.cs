@@ -424,7 +424,9 @@ namespace LP.UI
             var addrrGroup = component.Movable.FromComponentGroup.Group;
             var newElements = splits.Select(sp => new ElementModel(addrrGroup, sp.Trim(), ElementSource.ManualUserSeparate));
 
-            component.Movable.FromComponentGroup.SetupElements(leftElements.Concat(newElements));
+            var allElements = leftElements.Concat(newElements).ToList();    // забрать зарание, т.к. left зависит
+
+            component.Movable.FromComponentGroup.SetupElements(allElements);
         }
 
         /*private void SetSimirarStatus()
