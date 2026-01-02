@@ -89,12 +89,12 @@ namespace LP.Data
         public LPRecord GetNextFromLineIndex(int lineIndex, bool isCompletedFilter)
         {
             if (isCompletedFilter)
-                return new LPRecord(lineIndex, dataReader.GetNextRecord(lineIndex));
-            else
             {
                 var line = dataReader.GetNextCompletedRecord(lineIndex);
                 return new LPRecord(dataReader.CurrentLineIndex, line);
             }
+            else
+                return new LPRecord(lineIndex, dataReader.GetNextRecord(lineIndex));
         }
 
         public void SetRecord(string row) => dataReader.SetRecord(row);
