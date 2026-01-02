@@ -43,6 +43,7 @@ namespace LP.UI
         [SerializeField] Button _buttonInsertSpace = default;
         [SerializeField] Button _buttonTestAll = default;
         [SerializeField] Button _buttonFixRecord = default;
+        [SerializeField] Button _buttonRefreshFile = default;
 
         [Header("Toggles")]
         [SerializeField] Toggle _useNextRecord = default;
@@ -118,6 +119,7 @@ namespace LP.UI
             _buttonInsertSpace.onClick.AddListener(OnInsertSpaceAndTrim);
             _buttonTestAll.onClick.AddListener(OnTestAllLines);
             _buttonFixRecord.onClick.AddListener(OnFixRecord);
+            _buttonRefreshFile.onClick.AddListener(OnRefreshFile);
 
             _trashDrop.OnDropAddressComponent += (component) => component.SetEmpty();
             _libpostalParseDrop.OnDropAddressComponent += OnDropCustomElement; // (component) => ShowLibpostalParse(component.Element.Value, false, false);
@@ -169,6 +171,8 @@ namespace LP.UI
             LoadSelectedFileAsync();
         }
 
+        private void OnRefreshFile() => LoadSelectedFileAsync();
+
         private void RequestSaveRecord(MessageBoxAnswer answer)
         {
             _messageWindow.OnFinish -= RequestSaveRecord;
@@ -189,6 +193,8 @@ namespace LP.UI
 
             _proccessedCount = 0;
             _removedCount = 0;
+
+            _buttonDump.interactable = false;
 
             SetNextAddress();
             ShowCurrentAddress();
