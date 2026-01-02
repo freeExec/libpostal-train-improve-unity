@@ -325,6 +325,7 @@ namespace LP.Data
                 return _originalLines[_currentOriginalIndex];
             }
 
+            _currentOriginalIndex = -1;
             return string.Empty;
         }
         public string GetNextRecordByRandom()
@@ -340,6 +341,7 @@ namespace LP.Data
                 return _originalLines[_currentOriginalIndex];
             }
 
+            _currentOriginalIndex = -1;
             return string.Empty;
         }
 
@@ -360,6 +362,8 @@ namespace LP.Data
                 return _originalLines[_currentOriginalIndex];
             }
 
+            _sortLongestStates.CurrentIndex = -1;
+            _currentOriginalIndex = -1;
             return string.Empty;
         }
 
@@ -380,6 +384,8 @@ namespace LP.Data
                 return _originalLines[_currentOriginalIndex];
             }
 
+            _sortAddrStates.CurrentIndex = -1;
+            _currentOriginalIndex = -1;
             return string.Empty;
         }
 
