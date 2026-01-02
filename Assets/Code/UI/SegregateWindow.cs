@@ -163,8 +163,6 @@ namespace LP.UI
                 _messageWindow.OnFinish += RequestSaveRecord;
                 _messageWindow.Setup("More unsaved records. Ok Save. (X) Discard.");
                 _messageWindow.gameObject.SetActive(true);
-                _proccessedCount = 0;
-                _removedCount = 0;
                 return;
             }
 
@@ -188,6 +186,9 @@ namespace LP.UI
 
             Waiting = true;
             await _coreProcess.LoadFileAsync(filename);
+
+            _proccessedCount = 0;
+            _removedCount = 0;
 
             SetNextAddress();
             ShowCurrentAddress();
