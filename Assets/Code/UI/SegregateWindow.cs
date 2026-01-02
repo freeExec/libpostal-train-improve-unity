@@ -2,6 +2,7 @@
 using LP.Data;
 using LP.Model;
 using LP.UI.HistoryAddrComparer;
+using LP.UI.SimpleWindow;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -41,6 +42,7 @@ namespace LP.UI
         [SerializeField] Button _buttonTestLibpostal = default;
         [SerializeField] Button _buttonInsertSpace = default;
         [SerializeField] Button _buttonTestAll = default;
+        [SerializeField] Button _buttonFixRecord = default;
 
         [Header("Toggles")]
         [SerializeField] Toggle _useNextRecord = default;
@@ -53,10 +55,12 @@ namespace LP.UI
 
         [SerializeField] Toggle _autoApprovalRecord = default;
 
+        [Header("Windows")]
         [SerializeField] GameObject _waiterView = default;
         [SerializeField] BlockerWithCancel _waitWithCancel = default;
-
         [SerializeField] EditComponentWindow _editComponentWindow = default;
+        [SerializeField] MessageWindow _messageWindow = default;
+        [SerializeField] SelectRecordWindow _selectRecordWindow = default;
 
         [Header("Labels")]
         [SerializeField] TextMeshProUGUI _counter = default;
@@ -66,13 +70,12 @@ namespace LP.UI
         [SerializeField] TextMeshProUGUI _proccessedCountLabel = default;
         [SerializeField] TextMeshProUGUI _removedCountLabel = default;
 
-        [SerializeField] MessageWindow _messageWindow = default;
-
         [SerializeField] TMP_Dropdown _selectFile = default;
 
         [SerializeField] DefaultCopySelector _copySelector = default;
 
         [SerializeField] TestAllRecordsButton _testAllRecords = default;
+
 
         [Header("Colours")]
         [SerializeField] Color _warningColor = Color.red;
@@ -114,6 +117,7 @@ namespace LP.UI
             _buttonTestLibpostal.onClick.AddListener(TestOutOnLibpostal);
             _buttonInsertSpace.onClick.AddListener(OnInsertSpaceAndTrim);
             _buttonTestAll.onClick.AddListener(OnTestAllLines);
+            _buttonFixRecord.onClick.AddListener(OnFixRecord);
 
             _trashDrop.OnDropAddressComponent += (component) => component.SetEmpty();
             _libpostalParseDrop.OnDropAddressComponent += OnDropCustomElement; // (component) => ShowLibpostalParse(component.Element.Value, false, false);
@@ -492,6 +496,19 @@ namespace LP.UI
                     break;
             }
             _waitWithCancel.Hide();
+        }
+
+        private void OnFixRecord()
+        {
+            _selectRecordWindow.OnFinish += SelectRecordWindow_OnFinish;
+            _selectRecordWindow.gameObject.SetActive(true);
+        }
+
+        private void SelectRecordWindow_OnFinish(SelectRecordMode mode, int line)
+        {
+            _selectRecordWindow.OnFinish -= SelectRecordWindow_OnFinish;
+            _currentLPRecord = _coreProcess.GetNextFromLineIndex(line, mode == SelectRecordMode.Completed);
+            ShowCurrentAddress();
         }
 
         private static void ReplaceButtonNormalColor(Button button, Color colorNormal)

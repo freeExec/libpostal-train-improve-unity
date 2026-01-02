@@ -376,5 +376,25 @@ namespace LP.Data
 
             return string.Empty;
         }
+
+        public string GetNextRecord(int lineIndex)
+        {
+            _currentOriginalIndex = lineIndex;
+            return _originalLines[_currentOriginalIndex];
+        }
+
+        public string GetNextCompletedRecord(int lineIndex)
+        {
+            for (int i = 1, k = 0; i < _originalLines.Length && k < lineIndex; i++)
+            {
+                if (!_bitMap[i])
+                    continue;
+
+                k++;
+                _currentOriginalIndex = i;
+            }
+
+            return _originalLines[_currentOriginalIndex];
+        }
     }
 }
