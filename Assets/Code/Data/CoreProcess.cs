@@ -13,10 +13,6 @@ namespace LP.Data
 {
     public class CoreProcess : MonoBehaviour
     {
-        //public static CoreProcess Instance { get; private set; }
-
-        [SerializeField] private MessageWindow _messageWindow;
-
         public bool IsLibpostalSetupSuccessful { get; private set; }
         public AddressFormatter[] HeaderOrder { get; private set; }
 

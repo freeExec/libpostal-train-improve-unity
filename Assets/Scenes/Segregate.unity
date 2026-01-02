@@ -7941,7 +7941,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 16b079bbda87b1b4d87caeb1b8c62b1f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LP.Data.CorePrecess
-  _messageWindow: {fileID: 0}
 --- !u!4 &877903853
 Transform:
   m_ObjectHideFlags: 0

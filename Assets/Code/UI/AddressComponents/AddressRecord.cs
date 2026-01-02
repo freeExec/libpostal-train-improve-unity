@@ -43,7 +43,7 @@ namespace LP.UI
                 var group = component.First().Group;
                 if (_groupsRecord.TryGetValue(group, out ComponentsGroup groupRecord))
                     groupRecord.SetupElements(component);
-                else
+                else if (component.Any(c => !c.IsEmpty))
                     Debug.LogWarning($"Group not found: {group} => {string.Join("|", component.Select(c => c.Value))}");
             }
         }
