@@ -194,7 +194,7 @@ namespace LP.UI
             _proccessedCount = 0;
             _removedCount = 0;
 
-            _buttonDump.interactable = false;
+            _buttonDump.interactable = _proccessedCount + _removedCount > 0;
 
             SetNextAddress();
             ShowCurrentAddress();
@@ -207,7 +207,8 @@ namespace LP.UI
             _removedCount++;
             SetNextAddress();
             ShowCurrentAddress();
-            _buttonDump.interactable = true;
+            
+            _buttonDump.interactable = _proccessedCount + _removedCount > 0;
 
             if (_proccessedCount + _removedCount == WARNING_NEED_DUMP)
             {
@@ -251,7 +252,7 @@ namespace LP.UI
             SetNextAddress();
             ShowCurrentAddress();
 
-            _buttonDump.interactable = true;
+            _buttonDump.interactable = _proccessedCount + _removedCount > 0;
 
             if (_proccessedCount + _removedCount == WARNING_NEED_DUMP)
             {
@@ -303,7 +304,7 @@ namespace LP.UI
 
             ShowCurrentAddress();
 
-            _buttonDump.interactable = true;
+            _buttonDump.interactable = _proccessedCount + _removedCount > 0;
 
             if (_proccessedCount + _removedCount == WARNING_NEED_DUMP)
             {
@@ -389,13 +390,14 @@ namespace LP.UI
         {
             Waiting = true;
             await _coreProcess.SaveTsvPreTrainDataAsync();
-            _buttonDump.interactable = false;
+            
             Waiting = false;
 
             ReplaceButtonNormalColor(_buttonDump, _buttonDumpNormalColor);
 
             _proccessedCount = 0;
             _removedCount = 0;
+            _buttonDump.interactable = _proccessedCount + _removedCount > 0;
 
             SetNextAddress();
             ShowCurrentAddress(false);
@@ -407,7 +409,7 @@ namespace LP.UI
             await _coreProcess.SaveTsvOnlyCompletePreTrainData();
             Waiting = false;
 
-            _buttonDump.interactable = false;
+            _buttonDump.interactable = _proccessedCount + _removedCount > 0;
         }
 
         private void TestOutOnLibpostal()
