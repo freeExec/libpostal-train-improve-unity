@@ -260,6 +260,12 @@ namespace LP.Data
             if (_currentOriginalIndex > 0)
                 _currentOriginalIndex--;    // и ещё один назад, т.к. мы будем вызывать NEXT
 
+            if (_sortAddrStates.CurrentIndex > 0)
+                _sortAddrStates.CurrentIndex--;
+
+            if (_sortLongestStates.CurrentIndex > 0)
+                _sortLongestStates.CurrentIndex--;
+
             File.WriteAllLines(_preTrainDataFilePath, _originalLines);
             using (var fBitMap = new FileStream(_completeBitMapFilePath, FileMode.Create, FileAccess.Write))
             {
