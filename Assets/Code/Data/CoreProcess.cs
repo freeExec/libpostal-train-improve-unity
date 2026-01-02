@@ -1,4 +1,4 @@
-using LibPostalNet;
+﻿using LibPostalNet;
 using LP.Model;
 using LP.UI;
 using LP.UI.SimpleWindow;
@@ -13,6 +13,8 @@ namespace LP.Data
 {
     public class CoreProcess : MonoBehaviour
     {
+        [SerializeField] private MessageWindow _messageWindow;  // показать ошибку в EXE-билде
+
         public bool IsLibpostalSetupSuccessful { get; private set; }
         public AddressFormatter[] HeaderOrder { get; private set; }
 
