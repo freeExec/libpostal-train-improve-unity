@@ -79,11 +79,11 @@ namespace LP.Model
 
                 AddressFormatter.Country => LibpostalNormalizeOptions.LIBPOSTAL_ADDRESS_TOPONYM,
                 AddressFormatter.State => LibpostalNormalizeOptions.LIBPOSTAL_ADDRESS_TOPONYM,
-                AddressFormatter.StateDisctrict => LibpostalNormalizeOptions.LIBPOSTAL_ADDRESS_TOPONYM,
-                AddressFormatter.City => LibpostalNormalizeOptions.LIBPOSTAL_ADDRESS_TOPONYM,
-                AddressFormatter.CityDistrict => LibpostalNormalizeOptions.LIBPOSTAL_ADDRESS_TOPONYM,
+                AddressFormatter.StateDisctrict => LibpostalNormalizeOptions.LIBPOSTAL_ADDRESS_STREET,
+                AddressFormatter.City => LibpostalNormalizeOptions.LIBPOSTAL_ADDRESS_STREET,   // даже ANY до село не расширяет
+                AddressFormatter.CityDistrict => LibpostalNormalizeOptions.LIBPOSTAL_ADDRESS_STREET,
 
-                AddressFormatter.Road => LibpostalNormalizeOptions.LIBPOSTAL_ADDRESS_STREET,
+                AddressFormatter.Road => LibpostalNormalizeOptions.LIBPOSTAL_ADDRESS_STREET | LibpostalNormalizeOptions.LIBPOSTAL_ADDRESS_NAME,
                 AddressFormatter.HouseNumber => LibpostalNormalizeOptions.LIBPOSTAL_ADDRESS_HOUSE_NUMBER,
                 AddressFormatter.Level => LibpostalNormalizeOptions.LIBPOSTAL_ADDRESS_LEVEL,
                 AddressFormatter.Unit => LibpostalNormalizeOptions.LIBPOSTAL_ADDRESS_UNIT,
