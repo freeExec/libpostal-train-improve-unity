@@ -148,17 +148,17 @@ namespace LP.Data
                         if (sepPos != -1)
                         {
                             if (ci == postIndex - 1)
-                                pb = sepPos + 1;
+                                pb = Math.Min(sepPos + 1, pe);
                             else if (ci == postIndex)
                                 pe = sepPos;
 
-                            if (ci == cityIndex - 1)
-                                cb = sepPos + 1;
+                            else if (ci == cityIndex - 1)
+                                cb = Math.Min(sepPos + 1, ce);
                             else if (ci == cityIndex)
                                 ce = sepPos;
 
-                            if (ci == streetIndex - 1)
-                                sb = sepPos + 1;
+                            else if (ci == streetIndex - 1)
+                                sb = Math.Min(sepPos + 1, se);
                             else if (ci == streetIndex)
                                 se = sepPos;
                         }
