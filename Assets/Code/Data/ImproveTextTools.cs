@@ -30,7 +30,7 @@ namespace LP.Data
 						continue;
 
 					int originalLength = fixElement.Value.Length;
-					string elementValue = fixElement.Value.TrimEnd('.', ' ').Replace("«", "").Replace("»", "");
+					string elementValue = fixElement.Value.TrimEnd()/*.TrimEnd('.', ' ')*/.Replace("«", "\"").Replace("»", "\"");
 					bool isModify = originalLength > elementValue.Length;
 					foreach (var replace in tuple.Replaces)
 					{
