@@ -6,6 +6,7 @@ using LP.UI.SimpleWindow;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -372,6 +373,8 @@ namespace LP.UI
 
             if (_copySelector.CopySelector == CopySelector.Source)
                 outAddressView.Setup(tsvAddressView.Elements.Where(e => !e.IsEmpty));
+            if (_copySelector.CopySelector == CopySelector.SourceAndSplit)
+                outAddressView.Setup(GetSplitAddressComponents(tsvAddressView.Elements.Where(e => !e.IsEmpty).FirstOrDefault()));
             else
                 outAddressView.Setup(postalAddressView.Elements.Where(e => !e.IsEmpty));
 
@@ -440,6 +443,33 @@ namespace LP.UI
             var allElements = leftElements.Concat(newElements).ToList();    // забрать зарание, т.к. left зависит
 
             component.Movable.FromComponentGroup.SetupElements(allElements);
+        }
+
+        private readonly List<AddressFormatter[]> SplitTemplates = new()
+        {
+            // 0
+            new AddressFormatter[] { AddressFormatter.PostCode },
+            // 1
+            new AddressFormatter[] { AddressFormatter.City },
+            // 2
+            new AddressFormatter[] { AddressFormatter.Road, AddressFormatter.HouseNumber },
+            // 3
+            new AddressFormatter[] { AddressFormatter.City, AddressFormatter.Road, AddressFormatter.HouseNumber },
+            // 4
+            new AddressFormatter[] { AddressFormatter.State, AddressFormatter.City, AddressFormatter.Road, AddressFormatter.HouseNumber },
+            // 5
+            new AddressFormatter[] { AddressFormatter.State, AddressFormatter.StateDisctrict, AddressFormatter.City, AddressFormatter.Road, AddressFormatter.HouseNumber },
+        };
+
+        private IEnumerable<ElementModel> GetSplitAddressComponents(ElementModel element)
+        {
+            if (element == null) return Enumerable.Empty<ElementModel>();
+
+            var splits = element.Value.Split(',');
+            var templateGroups = splits.Length <= SplitTemplates.Count ? SplitTemplates[splits.Length] : SplitTemplates[0];
+
+            var newElements = splits.Zip(templateGroups.Cycle(), (sp, gr) => new ElementModel(gr, sp.Trim(), ElementSource.ManualUserSeparate));
+            return newElements;
         }
 
         /*private void SetSimirarStatus()
