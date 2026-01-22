@@ -6,23 +6,12 @@ using System.Threading.Tasks;
 
 namespace LP.Model
 {
-    public enum ElementSource
-    {
-        Unknown = -1,
-        RawOpenData  = 0,
-        PreparePythonScript,
-        Libpostal,
-        ManualUserSeparate,
-        ManualUserEditing,
-    }
-
     public class ElementModel
     {
         public readonly static ElementModel EmptyElement = new ElementModel(AddressFormatter.NotSet);
 
         public readonly AddressFormatter Group;
         public readonly string Value;
-        public readonly ElementSource Source;
 
         public bool IsEmpty => string.IsNullOrEmpty(Value);
 
@@ -31,11 +20,10 @@ namespace LP.Model
             this.Group = group;
         }
 
-        public ElementModel(AddressFormatter group, string value, ElementSource source)
+        public ElementModel(AddressFormatter group, string value)
         {
             this.Group = group;
             this.Value = value;
-            this.Source = source;
         }
 
         public override string ToString()
@@ -53,7 +41,7 @@ namespace LP.Model
 
         public int GetHashCode(ElementModel obj)
         {
-            return obj.Group.GetHashCode() ^ obj.Value.GetHashCode()/* ^ obj.Source.GetHashCode()*/;
+            return obj.Group.GetHashCode() ^ obj.Value.GetHashCode();
         }
     }
 }

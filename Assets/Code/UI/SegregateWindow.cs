@@ -333,7 +333,7 @@ namespace LP.UI
                             SaveAddress(GetSplitAddressComponents(singleForSplit));
                         }
                         else
-                            SaveAddress(_currentLPRecord.ParseResultEnum.Select(p => new ElementModel(p.Key, p.Value, ElementSource.Libpostal)));
+                            SaveAddress(_currentLPRecord.ParseResultEnum.Select(p => new ElementModel(p.Key, p.Value)));
                     }
                 }
 
@@ -394,7 +394,7 @@ namespace LP.UI
             if (string.IsNullOrEmpty(record.Line)) return false;
             var singleForSplit = FillComponents(record.Line, headerOrder).Where(e => !e.IsEmpty).FirstOrDefault();
             var trueComponents = GetSplitAddressComponents(singleForSplit);
-            var libpostalComponents = record.ParseResultEnum.Select(p => new ElementModel(p.Key, p.Value, ElementSource.Libpostal));
+            var libpostalComponents = record.ParseResultEnum.Select(p => new ElementModel(p.Key, p.Value));
 
             //var t1 = trueComponents.ToList();
             //var t2 = libpostalComponents.ToList();
@@ -408,22 +408,22 @@ namespace LP.UI
             if (string.IsNullOrEmpty(record.Line)) return false;
 
             var trueComponents = FillComponents(record.Line.Replace(LPRecord.LP_SEPATARE_SEMI, LPRecord.LP_SEPATARE_SPACE), headerOrder);
-            var libpostalComponents = record.ParseResultEnum.Select(p => new ElementModel(p.Key, p.Value, ElementSource.Libpostal));
+            var libpostalComponents = record.ParseResultEnum.Select(p => new ElementModel(p.Key, p.Value));
             return trueComponents.Where(c => !c.IsEmpty).SequenceEqual(libpostalComponents, ElementModelMatchComparer);
         }
 
-        private static IEnumerable<ElementModel> FillComponents(string addrString, AddressFormatter[] addressColumns, ElementSource source = ElementSource.PreparePythonScript) =>
+        private static IEnumerable<ElementModel> FillComponents(string addrString, AddressFormatter[] addressColumns) =>
             addrString
                 .Split(LPRecord.SPLIT_SEPATARE_TAB)
                 .Zip(addressColumns, (value, address) =>
-                    new ElementModel(address, value, source));
+                    new ElementModel(address, value));
 
         private void ShowCurrentAddress(bool saveNormAddr = true)
         {
             var addressComponents = FillComponents(_currentLPRecord.Line, /*tsvAddressView.AddressColumns*/_coreProcess.HeaderOrder);
             tsvAddressView.Setup(addressComponents);
 
-            postalAddressView.Setup(_currentLPRecord.ParseResultEnum.Select(p => new ElementModel(p.Key, p.Value, ElementSource.Libpostal)));
+            postalAddressView.Setup(_currentLPRecord.ParseResultEnum.Select(p => new ElementModel(p.Key, p.Value)));
             SetNormAddr(saveNormAddr);
             //SetSimirarStatus();
 
@@ -477,14 +477,14 @@ namespace LP.UI
 
             var addrStr = string.Join(" ", _coreProcess.HeaderOrder.Select(h => string.Join(" ", elementsMap[h].Select(e => e.Value))));
             var lpRecord = new LPRecord(_currentLPRecord.LineIndex, addrStr);
-            postalAddressView.Setup(lpRecord.ParseResultEnum.Select(p => new ElementModel(p.Key, p.Value, ElementSource.Libpostal)));
+            postalAddressView.Setup(lpRecord.ParseResultEnum.Select(p => new ElementModel(p.Key, p.Value)));
             SetNormAddr(false);
         }
 
         private void OnDropCustomElement(AddressComponent component)
         {
             _currentLPRecord = new LPRecord(_currentLPRecord.LineIndex, component.Element.Value);
-            postalAddressView.Setup(_currentLPRecord.ParseResultEnum.Select(p => new ElementModel(p.Key, p.Value, ElementSource.Libpostal)));
+            postalAddressView.Setup(_currentLPRecord.ParseResultEnum.Select(p => new ElementModel(p.Key, p.Value)));
         }
 
         private void OnDropSplitElement(AddressComponent component)
@@ -494,7 +494,7 @@ namespace LP.UI
             var leftElements = component.Movable.FromComponentGroup.Elements.Where(el => el != component.Element);
 
             var addrrGroup = component.Movable.FromComponentGroup.Group;
-            var newElements = splits.Select(sp => new ElementModel(addrrGroup, sp.Trim(), ElementSource.ManualUserSeparate));
+            var newElements = splits.Select(sp => new ElementModel(addrrGroup, sp.Trim()));
 
             var allElements = leftElements.Concat(newElements).ToList();    // забрать зарание, т.к. left зависит
 
@@ -524,7 +524,7 @@ namespace LP.UI
             var splits = element.Value.Split(',');
             var templateGroups = splits.Length < SplitTemplates.Count ? SplitTemplates[splits.Length] : SplitTemplates[0];
 
-            var newElements = splits.Zip(templateGroups.Cycle(), (sp, gr) => new ElementModel(gr, sp.Trim(), ElementSource.ManualUserEditing));
+            var newElements = splits.Zip(templateGroups.Cycle(), (sp, gr) => new ElementModel(gr, sp.Trim()));
             return newElements;
         }
 

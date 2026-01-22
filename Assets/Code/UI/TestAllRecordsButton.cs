@@ -32,13 +32,13 @@ namespace LP.UI
             progressCanvas.alpha = 1;
             await Task.Yield();
 
-            var filenameComplete = Path.GetFileNameWithoutExtension(filename) + "_complete";
+            /*var filenameComplete = Path.GetFileNameWithoutExtension(filename) + "_complete";
             await Task.Run(() => dataReader = new PreTrainDataReader(dataPath, filenameComplete), cancellationProcessToken.Token);
             if (cancellationProcessToken.IsCancellationRequested == false)
             {
                 StartCoroutine(PrecessCo(progressCompleted));
                 await awatingSource.Awaitable;
-            }
+            }*/
 
             if (cancellationProcessToken.IsCancellationRequested == false)
             {
@@ -90,10 +90,9 @@ namespace LP.UI
 
                 var prepareComponents = line
                     .Split(LPRecord.SPLIT_SEPATARE_TAB)
-                    .Zip(addressColumns, (value, address) =>
-                        new ElementModel(address, value, ElementSource.PreparePythonScript));
+                    .Zip(addressColumns, (value, address) => new ElementModel(address, value));
 
-                var libpostalComponents = lprecord.ParseResultEnum.Select(p => new ElementModel(p.Key, p.Value, ElementSource.Libpostal));
+                var libpostalComponents = lprecord.ParseResultEnum.Select(p => new ElementModel(p.Key, p.Value));
                 var isMatch = prepareComponents.Where(c => !c.IsEmpty).SequenceEqual(libpostalComponents, comparer);
 
                 if (isMatch)

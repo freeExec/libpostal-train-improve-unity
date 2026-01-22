@@ -40,7 +40,7 @@ namespace LP.UI
 
         private void OnClickFinish()
         {
-            var element = new ElementModel(_editingComponent.Element.Group, _inputField.text, ElementSource.ManualUserEditing);
+            var element = new ElementModel(_editingComponent.Element.Group, _inputField.text);
             OnEditFinish(element);
 
             gameObject.SetActive(false);

@@ -74,7 +74,7 @@ namespace LP.UI
 
         public void ArriveComponent(ElementModel originElement)
         {
-            var element = new ElementModel(Group, originElement.Value, ElementSource.ManualUserSeparate);
+            var element = new ElementModel(Group, originElement.Value);
             _elements.Add(element);
             UpdateElements();
         }

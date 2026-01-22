@@ -46,7 +46,7 @@ namespace LP.Data
 						}
 					}
 					if (isModify)
-                        elementsResult[i] = new ElementModel(tuple.AddressFormatter, elementValue, ElementSource.ManualUserSeparate);
+                        elementsResult[i] = new ElementModel(tuple.AddressFormatter, elementValue);
 				}
 			}
 
