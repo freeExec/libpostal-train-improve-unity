@@ -56,6 +56,7 @@ namespace LP.UI
         [SerializeField] Toggle _useNextDifferentRecord = default;
 
         [SerializeField] Toggle _autoApprovalRecord = default;
+        [SerializeField] Toggle _autoDeleteRecord = default;
 
         [Header("Windows")]
         [SerializeField] GameObject _waiterView = default;
@@ -298,15 +299,28 @@ namespace LP.UI
 
                 if (isMatch)
                 {
-                    if (_copySelector.CopySelector == CopySelector.Source)
-                        SaveAddress(FillComponents(_currentLPRecord.Line, _coreProcess.HeaderOrder));
-                    if (_copySelector.CopySelector == CopySelector.SourceAndSplit)
+                    bool needSave = true;
+                    if (_autoDeleteRecord.isOn)
                     {
-                        var singleForSplit = FillComponents(_currentLPRecord.Line, _coreProcess.HeaderOrder).Where(e => !e.IsEmpty).FirstOrDefault();
-                        SaveAddress(GetSplitAddressComponents(singleForSplit));
+                        prevExpandedAddrSet = currentExpandedAddrSet;
+                        currentExpandedAddrSet = _currentLPRecord.ExpandedAddressIndividualSet;
+                        bool similar = _historyAddrComparer.IsMatch(currentExpandedAddrSet, prevExpandedAddrSet);
+                        if (similar)
+                            needSave = false;
                     }
-                    else
-                        SaveAddress(_currentLPRecord.ParseResultEnum.Select(p => new ElementModel(p.Key, p.Value, ElementSource.Libpostal)));
+
+                    if (needSave)
+                    {
+                        if (_copySelector.CopySelector == CopySelector.Source)
+                            SaveAddress(FillComponents(_currentLPRecord.Line, _coreProcess.HeaderOrder));
+                        if (_copySelector.CopySelector == CopySelector.SourceAndSplit)
+                        {
+                            var singleForSplit = FillComponents(_currentLPRecord.Line, _coreProcess.HeaderOrder).Where(e => !e.IsEmpty).FirstOrDefault();
+                            SaveAddress(GetSplitAddressComponents(singleForSplit));
+                        }
+                        else
+                            SaveAddress(_currentLPRecord.ParseResultEnum.Select(p => new ElementModel(p.Key, p.Value, ElementSource.Libpostal)));
+                    }
                 }
 
                 if (_proccessedCount % ITER_NEXT_RECORD_PER_FRAME == 0)

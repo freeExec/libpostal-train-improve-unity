@@ -42,6 +42,13 @@ namespace LP.UI.HistoryAddrComparer
             return comparerDatasEnumerable.All(d => d.IsMatch);
         }
 
+        public bool IsMatch(List<KeyValuePair<AddressFormatter, HashSet<string>>> current, List<KeyValuePair<AddressFormatter, HashSet<string>>> previous)
+        {
+            return _addressColumns.Select(addrType =>
+                new ComparerData(addrType, current.Find(d => d.Key == addrType).Value, previous?.Find(d => d.Key == addrType).Value)
+            ).All(d => d.IsMatch);
+        }
+
         private class ComparerData
         {
             public readonly AddressFormatter Address;
