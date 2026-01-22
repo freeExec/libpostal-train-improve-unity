@@ -18,6 +18,8 @@ namespace LP.UI.HistoryAddrComparer
         [SerializeField] Transform currentContent;
         [SerializeField] Transform previousContent;
 
+        public bool IsLastSetupMatch { get; private set; }
+
         public bool Setup(List<KeyValuePair<AddressFormatter, HashSet<string>>> current, List<KeyValuePair<AddressFormatter, HashSet<string>>> previous)
         {
             var comparerDatasEnumerable = _addressColumns.Select(addrType =>
@@ -39,7 +41,8 @@ namespace LP.UI.HistoryAddrComparer
                     view.text = model.PrevAddr?.First();
                 });
 
-            return comparerDatasEnumerable.All(d => d.IsMatch);
+            IsLastSetupMatch = comparerDatasEnumerable.All(d => d.IsMatch);
+            return IsLastSetupMatch;
         }
 
         public bool IsMatch(List<KeyValuePair<AddressFormatter, HashSet<string>>> current, List<KeyValuePair<AddressFormatter, HashSet<string>>> previous)

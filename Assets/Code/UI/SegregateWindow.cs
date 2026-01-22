@@ -205,11 +205,16 @@ namespace LP.UI
 
         private void OnDeleteRecord()
         {
-            _coreProcess.DeleteCurrentRecord();
-            _removedCount++;
+            DeleteCurrentRecord();
             SetNextAddress();
             ShowCurrentAddress();
-            
+        }
+
+        private void DeleteCurrentRecord()
+        {
+            _coreProcess.DeleteCurrentRecord();
+            _removedCount++;
+
             _buttonDump.interactable = _proccessedCount + _removedCount > 0;
 
             if (_proccessedCount + _removedCount == WARNING_NEED_DUMP)
@@ -250,8 +255,17 @@ namespace LP.UI
             else
                 SaveAddress(tsvAddressView.Elements);
 
-            SetNextAddress();
-            ShowCurrentAddress();
+            bool isContinueSearch = false;
+            do
+            {
+                SetNextAddress();
+                ShowCurrentAddress();
+
+                isContinueSearch = _autoDeleteRecord.isOn && _historyAddrComparer.IsLastSetupMatch;
+                if (isContinueSearch)
+                    DeleteCurrentRecord();
+
+            } while (isContinueSearch);
 
             _buttonDump.interactable = _proccessedCount + _removedCount > 0;
 
