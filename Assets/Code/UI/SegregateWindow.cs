@@ -515,6 +515,8 @@ namespace LP.UI
             new AddressFormatter[] { AddressFormatter.State, AddressFormatter.City, AddressFormatter.Road, AddressFormatter.HouseNumber },
             // 5
             new AddressFormatter[] { AddressFormatter.State, AddressFormatter.StateDisctrict, AddressFormatter.City, AddressFormatter.Road, AddressFormatter.HouseNumber },
+            // 6
+            new AddressFormatter[] { AddressFormatter.PostCode, AddressFormatter.State, AddressFormatter.StateDisctrict, AddressFormatter.City, AddressFormatter.Road, AddressFormatter.HouseNumber },
         };
 
         private static IEnumerable<ElementModel> GetSplitAddressComponents(ElementModel element)
