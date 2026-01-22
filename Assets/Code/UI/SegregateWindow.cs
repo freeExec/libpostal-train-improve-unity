@@ -429,7 +429,7 @@ namespace LP.UI
 
             if (_copySelector.CopySelector == CopySelector.Source)
                 outAddressView.Setup(tsvAddressView.Elements.Where(e => !e.IsEmpty));
-            if (_copySelector.CopySelector == CopySelector.SourceAndSplit)
+            else if (_copySelector.CopySelector == CopySelector.SourceAndSplit)
                 outAddressView.Setup(GetSplitAddressComponents(tsvAddressView.Elements.Where(e => !e.IsEmpty).FirstOrDefault()));
             else
                 outAddressView.Setup(postalAddressView.Elements.Where(e => !e.IsEmpty));
