@@ -23,6 +23,8 @@ namespace LP.UI
         private CancellationTokenSource cancellationProcessToken;
         private AwaitableCompletionSource awatingSource;
 
+        private List<string> completedBadLines;
+
         public bool IsProcessing => cancellationProcessToken is not null;
 
         public async void Process(string dataPath, string filename)
@@ -39,6 +41,11 @@ namespace LP.UI
                 {
                     StartCoroutine(PrecessCo());
                     await awatingSource.Awaitable;
+
+                    var filenameComplete = Path.Combine(dataPath, Path.GetFileNameWithoutExtension(filename) + "_complete_bad" + ".tsv");
+                    File.WriteAllLines(filenameComplete, completedBadLines);
+                    completedBadLines.Clear();
+                    completedBadLines = default;
                 }
             }
             
@@ -73,6 +80,8 @@ namespace LP.UI
             int matchLinesCompleted = 0;
             int totalLinesCompleted = 0;
 
+            completedBadLines = new List<string>(dataReader.CompletedLines / 3);
+
             // skip header
             for (int currentLineIndex = 1; currentLineIndex <= dataReader.TotalLines; currentLineIndex++)
             {
@@ -91,13 +100,17 @@ namespace LP.UI
 
                 bool isMarkLine = dataReader.IsMarkRecord(currentLineIndex);
                 if (isMarkLine)
+                {
                     totalLinesCompleted++;
+                    if (isMatch)
+                        matchLinesCompleted++;
+                    else
+                        completedBadLines.Add(line);
+                }
 
                 if (isMatch)
                 {
                     matchLines++;
-                    if (isMarkLine)
-                        matchLinesCompleted++;
                 }
 
                 if (currentLineIndex % 1000 == 0 && currentLineIndex > 0 || currentLineIndex == dataReader.TotalLines)
