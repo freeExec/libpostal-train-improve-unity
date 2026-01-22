@@ -32,20 +32,12 @@ namespace LP.UI
             progressCanvas.alpha = 1;
             await Task.Yield();
 
-            /*var filenameComplete = Path.GetFileNameWithoutExtension(filename) + "_complete";
-            await Task.Run(() => dataReader = new PreTrainDataReader(dataPath, filenameComplete), cancellationProcessToken.Token);
-            if (cancellationProcessToken.IsCancellationRequested == false)
-            {
-                StartCoroutine(PrecessCo(progressCompleted));
-                await awatingSource.Awaitable;
-            }*/
-
             if (cancellationProcessToken.IsCancellationRequested == false)
             {
                 await Task.Run(() => dataReader = new PreTrainDataReader(dataPath, filename), cancellationProcessToken.Token);
                 if (cancellationProcessToken.IsCancellationRequested == false)
                 {
-                    StartCoroutine(PrecessCo(progressAll));
+                    StartCoroutine(PrecessCo());
                     await awatingSource.Awaitable;
                 }
             }
@@ -70,7 +62,7 @@ namespace LP.UI
             progressAll.SetLabel(string.Empty);
         }
 
-        private IEnumerator PrecessCo(ProgressBarGradientColor progress)
+        private IEnumerator PrecessCo()
         {
             awatingSource = new AwaitableCompletionSource();
 
@@ -78,6 +70,8 @@ namespace LP.UI
             var comparer = new ElementModelMatchComparer();
 
             int matchLines = 0;
+            int matchLinesCompleted = 0;
+            int totalLinesCompleted = 0;
 
             // skip header
             for (int currentLineIndex = 1; currentLineIndex <= dataReader.TotalLines; currentLineIndex++)
@@ -95,13 +89,24 @@ namespace LP.UI
                 var libpostalComponents = lprecord.ParseResultEnum.Select(p => new ElementModel(p.Key, p.Value));
                 var isMatch = prepareComponents.Where(c => !c.IsEmpty).SequenceEqual(libpostalComponents, comparer);
 
+                bool isMarkLine = dataReader.IsMarkRecord(currentLineIndex);
+                if (isMarkLine)
+                    totalLinesCompleted++;
+
                 if (isMatch)
+                {
                     matchLines++;
+                    if (isMarkLine)
+                        matchLinesCompleted++;
+                }
 
                 if (currentLineIndex % 1000 == 0 && currentLineIndex > 0 || currentLineIndex == dataReader.TotalLines)
                 {
-                    progress.Value = (float)matchLines / currentLineIndex;
-                    progress.SetLabel($"{progress.Value :P2} | {matchLines} | {(float)currentLineIndex / dataReader.TotalLines :P2}");
+                    progressAll.Value = (float)matchLines / currentLineIndex;
+                    progressAll.SetLabel($"{progressAll.Value :P2} | {matchLines} | {(float)currentLineIndex / dataReader.TotalLines :P2}");
+
+                    progressCompleted.Value = (float)matchLinesCompleted / totalLinesCompleted;
+                    progressCompleted.SetLabel($"{progressCompleted.Value:P2} | {matchLinesCompleted} | {(float)totalLinesCompleted / dataReader.CompletedLines:P2}");
 
                     //print($"{currentLineIndex}, {dataReader.TotalLines} => {line}");
                     yield return null;

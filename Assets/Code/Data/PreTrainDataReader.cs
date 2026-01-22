@@ -310,6 +310,7 @@ namespace LP.Data
                 CompletedLines++;
         }
 
+        public bool IsMarkRecord(int indexLine) => _bitMap[indexLine];
         public string GetRecord(int indexLine) => _originalLines[indexLine];
 
         public string GetNextRecord()
