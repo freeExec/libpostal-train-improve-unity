@@ -217,14 +217,13 @@ namespace LP.UI
             }
         }
 
-        private void SaveAddress(AddressRecord record)
+        private void SaveAddress(IEnumerable<ElementModel> elements)
         {
-            var elementsMap = record.Elements.ToLookup(e => e.Group);
-            if (record.Elements.All(e => e.IsEmpty))
+            if (elements.All(e => e.IsEmpty))
                 return;
 
+            var elementsMap = elements.ToLookup(e => e.Group);
             var row = string.Join("\t", _coreProcess.HeaderOrder.Select(h => string.Join(" ", elementsMap[h].Select(e => e.Value))));
-
             _coreProcess.SetRecord(row);
 
             _proccessedCount++;
@@ -246,9 +245,9 @@ namespace LP.UI
             }
 
             if (!outAddressView.IsEmpty)
-                SaveAddress(outAddressView);
+                SaveAddress(outAddressView.Elements);
             else
-                SaveAddress(tsvAddressView);
+                SaveAddress(tsvAddressView.Elements);
 
             SetNextAddress();
             ShowCurrentAddress();
@@ -275,10 +274,15 @@ namespace LP.UI
                 {
                     _currentLPRecord = _coreProcess.GetNextRecord();
                     if (_currentLPRecord.IsEmpty) break;
-                    isMatch = IsMatchTsvAndLibpostal(_currentLPRecord, _coreProcess.HeaderOrder);
+                    isMatch = _copySelector.CopySelector == CopySelector.SourceAndSplit 
+                        ? IsMatchTsvSplitAndLibpostal(_currentLPRecord, _coreProcess.HeaderOrder)
+                        : IsMatchTsvAndLibpostal(_currentLPRecord, _coreProcess.HeaderOrder);
 
                     if (tryFindCounter % ITER_NEXT_RECORD_PER_FRAME == 0)
+                    {
+                        ShowCurrentAddress(false);
                         yield return null;
+                    }
 
                     if (cts.IsCancellationRequested)
                         break;
@@ -294,12 +298,22 @@ namespace LP.UI
 
                 if (isMatch)
                 {
-                    ShowCurrentAddress();
-                    SaveAddress(tsvAddressView);
+                    if (_copySelector.CopySelector == CopySelector.Source)
+                        SaveAddress(FillComponents(_currentLPRecord.Line, _coreProcess.HeaderOrder));
+                    if (_copySelector.CopySelector == CopySelector.SourceAndSplit)
+                    {
+                        var singleForSplit = FillComponents(_currentLPRecord.Line, _coreProcess.HeaderOrder).Where(e => !e.IsEmpty).FirstOrDefault();
+                        SaveAddress(GetSplitAddressComponents(singleForSplit));
+                    }
+                    else
+                        SaveAddress(_currentLPRecord.ParseResultEnum.Select(p => new ElementModel(p.Key, p.Value, ElementSource.Libpostal)));
                 }
 
                 if (_proccessedCount % ITER_NEXT_RECORD_PER_FRAME == 0)
+                {
+                    ShowCurrentAddress(false);
                     yield return null;
+                }
 
             } while (isMatch);
 
@@ -347,10 +361,24 @@ namespace LP.UI
                 _currentLPRecord = _coreProcess.GetNextRecord();
         }
 
+        private static bool IsMatchTsvSplitAndLibpostal(LPRecord record, AddressFormatter[] headerOrder)
+        {
+            if (string.IsNullOrEmpty(record.Line)) return false;
+            var singleForSplit = FillComponents(record.Line, headerOrder).Where(e => !e.IsEmpty).FirstOrDefault();
+            var trueComponents = GetSplitAddressComponents(singleForSplit);
+            var libpostalComponents = record.ParseResultEnum.Select(p => new ElementModel(p.Key, p.Value, ElementSource.Libpostal));
+
+            //var t1 = trueComponents.ToList();
+            //var t2 = libpostalComponents.ToList();
+
+            return trueComponents.Where(c => !c.IsEmpty).SequenceEqual(libpostalComponents, ElementModelMatchComparer);
+        }
+
         private static ElementModelMatchComparer ElementModelMatchComparer = new ElementModelMatchComparer();
         private static bool IsMatchTsvAndLibpostal(LPRecord record, AddressFormatter[] headerOrder)
         {
             if (string.IsNullOrEmpty(record.Line)) return false;
+
             var trueComponents = FillComponents(record.Line.Replace(LPRecord.LP_SEPATARE_SEMI, LPRecord.LP_SEPATARE_SPACE), headerOrder);
             var libpostalComponents = record.ParseResultEnum.Select(p => new ElementModel(p.Key, p.Value, ElementSource.Libpostal));
             return trueComponents.Where(c => !c.IsEmpty).SequenceEqual(libpostalComponents, ElementModelMatchComparer);
@@ -360,7 +388,7 @@ namespace LP.UI
             addrString
                 .Split(LPRecord.SPLIT_SEPATARE_TAB)
                 .Zip(addressColumns, (value, address) =>
-                    new ElementModel(address, value, ElementSource.PreparePythonScript));
+                    new ElementModel(address, value, source));
 
         private void ShowCurrentAddress(bool saveNormAddr = true)
         {
@@ -445,7 +473,7 @@ namespace LP.UI
             component.Movable.FromComponentGroup.SetupElements(allElements);
         }
 
-        private readonly List<AddressFormatter[]> SplitTemplates = new()
+        private static readonly List<AddressFormatter[]> SplitTemplates = new()
         {
             // 0
             new AddressFormatter[] { AddressFormatter.PostCode },
@@ -461,14 +489,14 @@ namespace LP.UI
             new AddressFormatter[] { AddressFormatter.State, AddressFormatter.StateDisctrict, AddressFormatter.City, AddressFormatter.Road, AddressFormatter.HouseNumber },
         };
 
-        private IEnumerable<ElementModel> GetSplitAddressComponents(ElementModel element)
+        private static IEnumerable<ElementModel> GetSplitAddressComponents(ElementModel element)
         {
             if (element == null) return Enumerable.Empty<ElementModel>();
 
             var splits = element.Value.Split(',');
-            var templateGroups = splits.Length <= SplitTemplates.Count ? SplitTemplates[splits.Length] : SplitTemplates[0];
+            var templateGroups = splits.Length < SplitTemplates.Count ? SplitTemplates[splits.Length] : SplitTemplates[0];
 
-            var newElements = splits.Zip(templateGroups.Cycle(), (sp, gr) => new ElementModel(gr, sp.Trim(), ElementSource.ManualUserSeparate));
+            var newElements = splits.Zip(templateGroups.Cycle(), (sp, gr) => new ElementModel(gr, sp.Trim(), ElementSource.ManualUserEditing));
             return newElements;
         }
 

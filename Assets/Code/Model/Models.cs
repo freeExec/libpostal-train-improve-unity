@@ -53,7 +53,7 @@ namespace LP.Model
 
         public int GetHashCode(ElementModel obj)
         {
-            return obj.Group.GetHashCode() ^ obj.Value.GetHashCode() ^ obj.Source.GetHashCode();
+            return obj.Group.GetHashCode() ^ obj.Value.GetHashCode()/* ^ obj.Source.GetHashCode()*/;
         }
     }
 }
