@@ -146,14 +146,14 @@ namespace LP.UI
         const string FILE_EXT_TSV = ".tsv";
         const string FILE_MASK_TSV = "*" + FILE_EXT_TSV;
         const string FILE_COMPLITED_SUFFIX = "_complete";
-        const string FILE_COMPLITED_TSV = FILE_COMPLITED_SUFFIX + FILE_EXT_TSV;
+        //const string FILE_COMPLITED_TSV = FILE_COMPLITED_SUFFIX + FILE_EXT_TSV;
 
         private void SelectFileFill()
         {
             var options = new List<TMP_Dropdown.OptionData>();
             foreach (var fileTsv in Directory.EnumerateFiles(_coreProcess.ValidateDataPath, FILE_MASK_TSV))
             {
-                if (fileTsv.EndsWith(FILE_COMPLITED_TSV)) continue;
+                if (fileTsv.Contains(FILE_COMPLITED_SUFFIX)) continue;
                 options.Add(new TMP_Dropdown.OptionData(Path.GetFileNameWithoutExtension(fileTsv)));
             }
             _selectFile.AddOptions(options);
@@ -171,6 +171,7 @@ namespace LP.UI
             }
 
             LoadSelectedFileAsync();
+            _testAllRecords.ClearProgress();
         }
 
         private void OnRefreshFile() => LoadSelectedFileAsync();
