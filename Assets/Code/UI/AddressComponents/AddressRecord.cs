@@ -57,5 +57,7 @@ namespace LP.UI
         }
 
         public IEnumerable<ElementModel> GetElementByGroup(AddressFormatter group) => _groupsRecord[group].Elements;
+
+        public ComponentsGroup GetComponentsGroup(AddressFormatter group) => _groupsRecord[group];
     }
 }
