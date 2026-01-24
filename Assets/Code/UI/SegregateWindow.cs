@@ -196,6 +196,7 @@ namespace LP.UI
 
             _proccessedCount = 0;
             _removedCount = 0;
+            prevExpandedAddrSet = default;
 
             _buttonDump.interactable = _proccessedCount + _removedCount > 0;
 
@@ -281,10 +282,11 @@ namespace LP.UI
             CancellationTokenSource cts = new CancellationTokenSource();
             _waitWithCancel.Show(cts);
 
+            prevExpandedAddrSet = default;
+
             bool isMatch = false;
             do
             {
-                //SetNextAddress(_coreProcess.HeaderOrder); // Mode = NextMatch
                 int tryFindCounter = 1;
                 do
                 {
@@ -293,6 +295,10 @@ namespace LP.UI
                     isMatch = _copySelector.CopySelector == CopySelector.SourceAndSplit 
                         ? IsMatchTsvSplitAndLibpostal(_currentLPRecord, _coreProcess.HeaderOrder)
                         : IsMatchTsvAndLibpostal(_currentLPRecord, _coreProcess.HeaderOrder);
+
+                    //var color = isMatch ? "" : "lightblue";
+                    //if (!isMatch)
+                    //    Debug.Log($"<color={color}>l:{_currentLPRecord.LineIndex} m:{isMatch} s:-----\n{_currentLPRecord.Line}</color>");
 
                     if (tryFindCounter % ITER_NEXT_RECORD_PER_FRAME == 0)
                     {
@@ -317,12 +323,16 @@ namespace LP.UI
                     bool needSave = true;
                     if (_autoDeleteRecord.isOn)
                     {
-                        prevExpandedAddrSet = currentExpandedAddrSet;
                         currentExpandedAddrSet = _currentLPRecord.ExpandedAddressIndividualSet;
                         bool similar = _historyAddrComparer.IsMatch(currentExpandedAddrSet, prevExpandedAddrSet);
                         if (similar)
                             needSave = false;
+
+                        prevExpandedAddrSet = currentExpandedAddrSet;
                     }
+
+                    //var color = needSave ? "green" : "red";
+                    //Debug.Log($"<color={color}>l:{_currentLPRecord.LineIndex} m:{isMatch} s:{needSave}\n{_currentLPRecord.Line}</color>");
 
                     if (needSave)
                     {
@@ -335,6 +345,10 @@ namespace LP.UI
                         }
                         else
                             SaveAddress(_currentLPRecord.ParseResultEnum.Select(p => new ElementModel(p.Key, p.Value)));
+                    }
+                    else
+                    {
+                        DeleteCurrentRecord();
                     }
                 }
 
