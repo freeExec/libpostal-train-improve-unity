@@ -254,6 +254,8 @@ namespace LP.Data
                 // вернуться назад за счёт удалённых записей.
                 // иначе получаются пропуски
                 _currentOriginalIndex -= _deletedRecords.Value;
+                if (_currentOriginalIndex < -1) _currentOriginalIndex = -1;
+
                 CleanAndPrepare();
             }
 
