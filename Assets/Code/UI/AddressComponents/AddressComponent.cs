@@ -44,7 +44,10 @@ namespace LP.UI
         {
             if (eventData.button == PointerEventData.InputButton.Right)
             {
-                //GetComponentInParent<SegregateWindow>()
+                Movable.OnBeginDrag(default);
+                Movable.FromComponentGroup.DepartureComponent(this);
+                SetEmpty();
+                Movable.OnEndDrag(default);
             }
         }
     }

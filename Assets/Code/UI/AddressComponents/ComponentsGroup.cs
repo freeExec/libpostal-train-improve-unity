@@ -79,7 +79,7 @@ namespace LP.UI
             UpdateElements();
         }
 
-        private void DepartureComponent(AddressComponent component)
+        public void DepartureComponent(AddressComponent component)
         {
             _elements.Remove(component.Element);
             UpdateElements();
