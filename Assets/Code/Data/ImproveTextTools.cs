@@ -10,7 +10,7 @@ namespace LP.Data
 
         static (AddressFormatter AddressFormatter, string[] Replaces)[] _replacesHelperToInserSpace = new (AddressFormatter, string[])[]
         {
-            ( AddressFormatter.City,         new string[] { "п.", "г.", "д.", "с.", "пос." } ),
+            ( AddressFormatter.City,         new string[] { "п.", "г.", "д.", "с.", "пос.", "пгт.", "ж/д ст." } ),
             ( AddressFormatter.Road,         new string[] { "ул.", "пр.", "пер.", "пр-т." } ),
             ( AddressFormatter.CityDistrict, new string[] { "мкр." } ),
             ( AddressFormatter.HouseNumber,  new string[] { "д.", "лит.", "стр.", "кор.", "корп.", "вл." } ),
